@@ -251,7 +251,6 @@ class EvaluationPool(List):
     def eval(self, sort_by="auc", ascending=False):
         records = [e.eval() for e in self]
         df = pd.DataFrame.from_records(data=records)
-        df.drop(['y_true', 'y_prob', 'y_label'], axis=1)
         df.set_index('name', inplace=True)
         df.sort_index(axis=1, )
         df.sort_values(sort_by, ascending=ascending, inplace=True)
