@@ -75,8 +75,8 @@ class ABCModel(abc.ABC):
         return df_x, df_y
 
     def fit(self, dataset: DataSet, **options):
-        self.trainset = dataset
-        self._fit(dataset, **options)
+        self.trainset = dataset.copy()
+        self._fit(self.trainset, **options)
         self.trainset.predict = self.predict(dataset.x)
         return self
 
