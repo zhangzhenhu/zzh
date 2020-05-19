@@ -37,7 +37,7 @@ class Xgboost(ABCModel):
                'n_estimators': 500,
                'learning_rate': 0.02,
                'gamma': 0.2,
-               'silent': 1,
+               # 'silent': 1,
                'objective': 'binary:logistic',
                'subsample': 0.8,
                'colsample_bytree': 0.8}
