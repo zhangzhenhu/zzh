@@ -197,7 +197,7 @@ class Evaluation:
         # print("")
 
     def roc_curve(self):
-        return metrics.roc_curve(y_true=self.y_true, y_score=self.y_pred)
+        return metrics.roc_curve(y_true=self.y_true, y_score=self.y_pred[:,1])
 
     def plot_auc(self,gca=None):
 
@@ -208,7 +208,7 @@ class Evaluation:
         # assert y_pred is not None
         # assert y_true is not None
 
-        fpr, tpr, _ = metrics.roc_curve(y_true=self.y_true, y_score=self.y_pred)
+        fpr, tpr, _ = self.roc_curve()
         roc_auc = metrics.auc(fpr, tpr)
         # plt.figure()
         lw = 2
