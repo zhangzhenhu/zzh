@@ -91,7 +91,7 @@ class Evaluation:
         # 在某些特殊场景下，不是每条样本都能给出预测值。
         # 有些样本的预测值为空值，这里去掉空值
         self.y_true, self.y_pred = select_valid(y_true=dataset.y, y_pred=dataset.predict)
-        self.y_label = prob_to_binary(self.y_pred, self.threshold)
+        self.y_label = prob_to_binary(self.y_pred[:, 1], self.threshold)
 
     @staticmethod
     def pred_binary(y_true, y_pred, threshold=0.5):
