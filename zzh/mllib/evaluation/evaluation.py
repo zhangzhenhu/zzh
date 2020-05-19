@@ -81,20 +81,9 @@ class Evaluation:
         'f1',
         'description']
 
-    def __init__(self, model, dataset: DataSet, threshold=None):
-        self.model = model
+    def __init__(self, dataset: DataSet, threshold=None, name="default", ):
+        self.name = name
         self.dataset = dataset
-        # self.key_index = ['uae', 'accuracy',
-        #                   'precision_1',
-        #                   'precision_0',
-        #                   'recall_0',
-        #                   'recall_1',
-        #                   'mae',
-        #                   'mse',
-        #                   'auc_score', 'f1_score']
-        # self.y_true = None
-        # self.y_pred = None
-        # self.y_pred_binary = None
         if threshold is None:
             self.threshold = dataset.threshold
         else:
@@ -151,8 +140,7 @@ class Evaluation:
         mc = self.eval_binary(self.y_true, self.y_pred, self.y_label)
         mc['coverage'] = self.y_pred.shape[0] / self.dataset.y.shape[0]
         mc['dataset'] = self.dataset.name
-        mc['name'] = self.model.name if self.model is not None else "NULL"
-        mc['description'] = self.model.description if self.model is not None else "NULL"
+        mc['name'] = self.name
         return mc
 
     @staticmethod
@@ -235,12 +223,8 @@ class Evaluation:
         gca.set_ylim([0.0, 1.05])
         gca.set_xlabel('False Positive Rate')
         gca.set_ylabel('True Positive Rate')
-        gca.set_title(' %s roc curve' % self.model.name)
+        gca.set_title(' %s roc curve' % self.name)
         gca.legend(loc="lower right")
-
-    @property
-    def name(self):
-        return self.model.name
 
 
 class EvaluationPool(List):
