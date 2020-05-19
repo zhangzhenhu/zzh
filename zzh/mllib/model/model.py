@@ -13,7 +13,7 @@ import pandas as pd
 import numpy as np
 import random
 import abc
-from sklearn.externals import joblib
+import joblib
 import matplotlib.pyplot as plt
 
 from zzh.mllib.feature import DataSet
