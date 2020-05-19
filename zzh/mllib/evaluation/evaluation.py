@@ -36,7 +36,7 @@ def select_valid(y_true, y_pred):
 
     y_pred = y_pred[valid_mask]
     y_true = y_true[valid_mask]
-    return y_pred, y_true
+    return y_true, y_pred
 
 
 def default_metrics():
