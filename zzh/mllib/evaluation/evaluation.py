@@ -199,9 +199,7 @@ class Evaluation:
     def roc_curve(self):
         return metrics.roc_curve(y_true=self.y_true, y_score=self.y_pred)
 
-    def plot_auc(self, dataset: DataSet = None, gca=None):
-        if dataset is None:
-            dataset = self.dataset
+    def plot_auc(self,gca=None):
 
         # if y_true is None and self.model is not None:
         #     y_true = self.model.y_true
@@ -210,7 +208,7 @@ class Evaluation:
         # assert y_pred is not None
         # assert y_true is not None
 
-        fpr, tpr, _ = metrics.roc_curve(y_true=dataset.y, y_score=dataset.predict)
+        fpr, tpr, _ = metrics.roc_curve(y_true=self.y_true, y_score=self.y_pred)
         roc_auc = metrics.auc(fpr, tpr)
         # plt.figure()
         lw = 2
@@ -352,7 +350,7 @@ class EvaluationPool(List):
                 roc_auc = metrics.auc(fpr, tpr)
             except:
                 roc_auc = 0
-            plt.plot(fpr, tpr,  # color='darkorange',
+            gca.plot(fpr, tpr,  # color='darkorange',
                      lw=lw, label='%s (area = %0.2f)' % (e.name, roc_auc))
 
         gca.plot([0, 1], [0, 1], color='navy', lw=lw, linestyle='--')
