@@ -43,7 +43,7 @@ class ABCModel(abc.ABC):
     # train_ev = None  # type: dict
     # test_ev = None  # type: dict
 
-    def __init__(self, model_params: Dict = None, name=None):
+    def __init__(self, name=None, **options):
         # self.data_param = data_param
         self.m = None
         if name:
@@ -62,8 +62,8 @@ class ABCModel(abc.ABC):
         # if isinstance(params, dict):
         #     self.params.update(params)
         self.model_params = self.default.copy()
-        if model_params:
-            self.model_params.update(model_params)
+        if options:
+            self.model_params.update(options)
 
     def tf_sample(self, df_x, df_y):
         """
