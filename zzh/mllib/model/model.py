@@ -77,7 +77,7 @@ class ABCModel(abc.ABC):
     def fit(self, dataset: DataSet, **options):
         self.trainset = dataset.copy()
         self._fit(self.trainset, **options)
-        self.trainset.predict = self.predict(dataset.x)
+        self.trainset.predict = self.predict(self.trainset.x)
         return self
 
     @abc.abstractmethod
