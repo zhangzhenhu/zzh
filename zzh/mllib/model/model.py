@@ -13,6 +13,9 @@ import pandas as pd
 import numpy as np
 import random
 import abc
+from sklearn.externals import joblib
+import matplotlib.pyplot as plt
+
 from zzh.mllib.feature import DataSet
 # from IPython.display import display
 from zzh.mllib.evaluation import Evaluation
@@ -48,19 +51,6 @@ class ABCModel(abc.ABC):
         self.m = None
         if name:
             self.name = name
-        # self.y_pred = None
-        # self.y_true = None
-        # self.feature = self.data_param.get('feature_list', None)
-        # self.train_x = self.data_param.get('feature_train', None)
-        # self.train_y = self.data_param.get('label_train', None)
-        # self.test_x = self.data_param.get('feature_test', None)
-        # self.test_y = self.data_param.get('label_test', None)
-        # if evaluation is None:
-        #     self.evaluation = Evaluation(model=self)
-        # else:
-        #     self.evaluation = evaluation
-        # if isinstance(params, dict):
-        #     self.params.update(params)
         self.model_params = self.default.copy()
         if options:
             self.model_params.update(options)
@@ -104,32 +94,17 @@ class ABCModel(abc.ABC):
         self.testset = dataset
         self.testset.predict = self.predict(dataset.x)
 
-    # @abc.abstractmethod
-    # def _test(self, dataset: DataSet, **options):
-    #         """
-    #
-    #         :param dataset:
-    #         :param options:
-    #         :return:
-    #         """
-    #         raise NotImplemented
-    @abc.abstractmethod
-    def predict(self, x):
-        raise NotImplemented
+    def predict(self, x, **options):
 
-    @staticmethod
-    def convert_to_label(y_prob, thereshold=0.5):
-        y_prob[y_prob >= 0.5] = 1
-        y_prob[y_prob < 0.5] = 1
+        y_prob = self.m.predict_proba(x)
+
         return y_prob
 
-    @abc.abstractmethod
-    def save(self, save_path):
-        raise NotImplemented
-
-    @abc.abstractmethod
     def load(self, model_file):
-        raise NotImplemented
+        self.m = joblib.load(model_file)
+
+    def save(self, save_path):
+        joblib.dump(self.m, save_path)
 
     def evaluate(self, threshold=None):
 
@@ -145,6 +120,13 @@ class ABCModel(abc.ABC):
             test_ev = None
 
         return train_ev, test_ev
+
+    def importance_feature(self):
+        feat_imp = pd.Series(self.m.feature_importances_, self.trainset.header).sort_values(ascending=False)
+        plt.figure(figsize=(20, 6))
+        feat_imp.plot(kind='bar', title='model %s Feature Importances' % self.name)
+        plt.ylabel('Feature Importance Score')
+        plt.show()
 
     # def test(self):
     #     """

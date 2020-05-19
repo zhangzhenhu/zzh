@@ -13,13 +13,13 @@ import argparse
 import numpy as np
 import pandas as pd
 from scipy.special import expit as sigmod
-from .model import Model
+from .model import ABCModel
 
 
-class Irt(Model):
-    name = "irt_model"
+class Irt(ABCModel):
+    name = "irt"
     # 模型参数
-    description = "irt_model"
+    description = "irt"
 
     def select_features(self, df_x: pd.DataFrame, feature_list=None):
         return df_x[['sf_theta', 'if_difficulty', 'sf_no']]
@@ -46,7 +46,7 @@ class Irt(Model):
         prob = sigmod(z)
         return prob.values
 
-    def fit(self, **kwargs) -> Model:
+    def fit(self, **kwargs) -> "Irt":
         feature_list = kwargs.get('feature_list', None)
         if not feature_list:
             self.name = self.name+'(-irt)'

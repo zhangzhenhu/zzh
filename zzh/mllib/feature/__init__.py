@@ -63,7 +63,7 @@ def pandas_to_numpy_ml(df_data: pd.DataFrame, feature_list: list, one_hot: dict)
     return numpy_data, header
 
 
-def pandas_to_numpy_tf(df_data: pd.DataFrame, feature_list: list, one_hot: dict):
+def pandas_to_numpy_fm(df_data: pd.DataFrame, feature_list: list, one_hot: dict):
     """
     pandas DataFrame 数据转换成模型的numpy特征矩阵，
 
@@ -90,7 +90,7 @@ def pandas_to_numpy_tf(df_data: pd.DataFrame, feature_list: list, one_hot: dict)
 
             value_map = {v: i for i, v in enumerate(one_hot[fe])}
 
-            # 对ont-hot中某个特征新出现的值，xi取当前列索引位，对应的xv取0
+            # 对one-hot中某个特征新出现的值，xi取当前列索引位，对应的xv取0
             # 理论上对应的做embedding之后全部为0
             xi[:, field_index] = df_data[fe].map(lambda v: value_map.get(v, np.nan)) + feature_index
 

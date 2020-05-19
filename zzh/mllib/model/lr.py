@@ -64,29 +64,4 @@ class LR(ABCModel):
         # fit_data = self.scalar_.transform(fit_data)
         # fit_data = self.pca.transform(fit_data)
         self.m.fit(dataset.x, dataset.y, **options)
-        # 评估训练集上的效果
-        # self.train_y_pred = self.predict(self.train_x)
-        # self.train_y = np.array(self.train_y)
-        # self.train_y_pred = np.array(self.train_y_pred)
-        # self.train_ev = self.evaluation.evaluate(y_true=self.train_y, y_pred=self.train_y_pred, threshold=0.5)
 
-
-    def predict(self, x, **options):
-        # x = self.scalar_.transform(x)
-        # x = self.pca.transform(x)
-
-        y_prob = self.m.predict_proba(x)
-        # if threshold is not None:
-        #     y_prob = self.convert_to_label(y_prob, thereshold)
-        # y_prob = y_prob.tolist()
-        # y_prob = [item[1] for item in y_prob]
-        # y_prob = np.array(y_prob)
-
-        return y_prob
-
-    def load(self, model_file):
-        pass
-        self.m = joblib.load(model_file)
-
-    def save(self, save_path):
-        joblib.dump(self.m, save_path)

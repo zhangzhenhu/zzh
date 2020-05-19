@@ -15,6 +15,47 @@ import os
 import sys
 import json
 
+"""
+关于 X_i 和 X_v
+
+为什么要把训练数据分成两个矩阵？
+FM模型需要为每个特征训练一个embedding vector，
+在模型计算过程中使用 embedding_lookup + index matrix 可以方便计算。
+
+
+
+首先把特征分成两种，一种是不需要one hot(数值类)，一种是需要one hot（枚举类）。
+然后定义，one hot 之前的特征称为 field，one hot 之后的特征为 feature。
+
+- X_i 表示 feat_index
+- X_v 表示 feat_value
+
+**feat_index**
+
+feat_index 存储的是样本的 field 的"feature索引"，shape=(N,field_size)。
+feat_index[i,j]表示的是第i个样本第j个field的 feature_index。
+如果当前 field 不需要 one hot，此 field 就只会映射成一个 feature；
+如果当前 field 需要 one hot，此 field 就会被映射成多个 feature ，
+每个枚举值是一个 feature，其实就是进行 one hot 编码。
+
+比如 feat_index[i,j]=c，表示 第i个样本第j个 field 的对应着第c个feature，
+c是 feature_index。
+当然如果 field_j 是数值 field，所有样本的j列都是一样的值，因为 field_j 不需要onehot。
+如果 field_j 需要one hot，c的值就是其原来的枚举值onehot后映射对应的 feature_index。
+feat_index 是给 embedding_lookup是用的。
+
+**feat_value**
+
+feat_value 存储的是样本field的"值"，shape=(N,field_size)。
+feat_value[i,j]表示的是第i个样本第j个field的值。
+如果当前field 不需要 one hot，feat_value[i,j]就是原始数据值；
+如果当前field 需要 one hot，feat_value[i,j]就是常量1；
+
+
+注意：这里有一个前提条件，就是 one_hot 的 field 变量只能取一个值，一个变量可以有多个取值的情况是不支持的。
+
+"""
+
 
 class DeepFM(BaseEstimator, TransformerMixin):
 
@@ -118,10 +159,32 @@ class DeepFM(BaseEstimator, TransformerMixin):
 
             self.weights = self._initialize_weights()
 
-            # model
-            self.embeddings = tf.nn.embedding_lookup(self.weights["feature_embeddings"],
-                                                     self.feat_index)  # None * F * K
+            # 每一个feature 有一个 embedding
+            # feature_embeddings.shape=(self.feature_size, self.embedding_size)
+
+            # feat_index[i,j] 存储的是 第i条样本第j个field 对应的 feature_index
+            # 1. 如果 field_j 是非 one hot 特征，则 field_j 不需要拆成多个 feature，
+            #   feat_index[:,j] 所有样本行都是同一个值，对应同一个 feature_index。
+            # 2. 如果 field_j 是 one hot 特征，则 field_j 需要拆成多个 feature，每个枚举值独立成一个 feature，
+            #   此时 feat_index[:,j] 不同行是不同值，其值表示 枚举值Value(field_j) 对应的 feature_index.
+            #   比如，第i=3行样本，第j=5个field表示颜色，其值是红色，红色被 onehot成 feature_index=13.则 feat_index[3,5]=13
+
+            # shape=(N样本数量 * field_size * K)
+            # N 表示样本的数量
+            # K 是嵌入向量的长度,
+            # 取出所有样本，每个 feature 的嵌入向量
+            # 对于one_hot 的 field，相当于只取出来枚举值对应的 feature_index 的嵌入向量，
+            # 相当于每个 field 取一个，最终每条样本嵌入向量的数量还是 field 。
+            self.embeddings = tf.nn.embedding_lookup(
+                self.weights["feature_embeddings"],  # shape=(self.feature_size, self.embedding_size)
+                self.feat_index  # N * field_size
+            )
+            # shape=(None * F * 1)
+            #
             feat_value = tf.reshape(self.feat_value, shape=[-1, self.field_size, 1])  # None * F * 1
+
+            # FM部分的公式是 (x_i * x_j)(v_i*v_j)=(x_i*v_i)(x_j*v_j)
+            # 这里先把每个特征的向量乘上其特征值。
             self.embeddings = tf.multiply(self.embeddings, feat_value)  # None * F * K
 
             # ---------- first order term ----------

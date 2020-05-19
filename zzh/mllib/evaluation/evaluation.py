@@ -93,40 +93,18 @@ class Evaluation:
         self.y_true, self.y_pred = select_valid(y_true=dataset.y, y_pred=dataset.predict)
         self.y_label = prob_to_binary(self.y_pred[:, 1], self.threshold)
 
-    @staticmethod
-    def pred_binary(y_true, y_pred, threshold=0.5):
-
-        # self.y_pred = y_pred
-        y_pred_binary = y_pred.copy()
-        # 找出非空值的位置
-        valid_mask = ~np.isnan(y_pred_binary)
-
-        y_pred = y_pred[valid_mask]
-        y_true = y_true[valid_mask]
-        return y_pred, y_true
-
-        # y_pred_binary = y_pred_binary[valid_mask]
-        y_pred_binary[y_pred_binary >= threshold] = 1
-        y_pred_binary[y_pred_binary < threshold] = 0
-        return y_pred_binary
-
-        # self.y_true = y_true
-        # self.y_pred_binary = y_pred_binary
-
-    @staticmethod
-    def confusion_matrix(dataset, threshold=0.5):
-        pass
+    def confusion_matrix(self):
         # y_pred_binary = Evaluation.pred_binary(y_true, y_pred, threshold)
 
-        # cm = metrics.confusion_matrix(y_true, y_pred_binary, labels=[1, 0])
-        # return cm
+        cm = metrics.confusion_matrix(self.y_true, self.y_label, labels=[1, 0])
+        return cm
 
     def display_confusion_matrix(self, y_true=None, y_pred=None, threshold=0.5):
 
-        cm = self.confusion_matrix(y_true, y_pred, threshold)
+        cm = self.confusion_matrix()
         cm_pandas = pd.DataFrame(cm, columns=['pre_1', 'pre_0'],
-                                 index=pd.Index(['real_1', 'real_0'], name='%s' % self.model.name))
-        cm_pandas.name = self.model.name
+                                 index=pd.Index(['real_1', 'real_0'], name='%s' % self.name))
+        cm_pandas.name = self.name
         display(cm_pandas)
 
     def eval(self):
@@ -184,9 +162,9 @@ class Evaluation:
 
         return mc
 
-    def print_evaluate(self, y_true=None, y_pred=None, threshold=0.5):
+    def print_evaluate(self):
         from tabulate import tabulate
-        ret = self.evaluate(y_true, y_pred, threshold)
+        ret = self.eval()
         print(tabulate(pd.DataFrame([ret]), headers='keys', tablefmt='psql'))
         # for k in ['name', ] + self.key_index + ['description']:
         #     v = ret[k]
@@ -200,13 +178,6 @@ class Evaluation:
         return metrics.roc_curve(y_true=self.y_true, y_score=self.y_pred[:, 1])
 
     def plot_auc(self, gca=None):
-
-        # if y_true is None and self.model is not None:
-        #     y_true = self.model.y_true
-        # if y_pred is None and self.model is not None:
-        #     y_pred = self.model.y_pred
-        # assert y_pred is not None
-        # assert y_true is not None
 
         fpr, tpr, _ = self.roc_curve()
         roc_auc = metrics.auc(fpr, tpr)
@@ -270,44 +241,13 @@ class EvaluationPool(List):
                     ]
         return df[cols]
 
-    # def eval(self, target="test", dataset=None):
-    #     # if len(self) == 0:
-    #     #     return pd.DataFrame()
-    #     if dataset is None:
-    #         dataset = self.dataset
-    #
-    #     if target == 'test':
-    #         x = dataset.test_x
-    #         y = dataset.test_y
-    #     elif target == "train":
-    #         x = dataset.train_x
-    #         x = dataset.train_y
-    #
-    #     records = [self.process_one(m, x, y) for m in self.models]
-    #     df = pd.DataFrame.from_records(data=records)
-    #     df.set_index('name', inplace=True)
-    #     df.sort_index(axis=1, )
-    #     df = df[self.key_index]
-    #
-    #     df.sort_values(self.key_index[0], ascending=False, inplace=True)
-    #     return df
-    #
-    # def process_one(self, model, x, y, threshold=0.5):
-    #
-    #     y_prob = model.predict(x, y)
-    #     ev = Evaluation(model)
-    #     return ev.evaluate(y_true=y, y_pred=y_prob, threshold=threshold)
-    #
-    #     # if target == "train":
-    #     #     records = [model.train_ev for model in self]
-    #     # else:
-    #     #     records = [model.test_ev for model in self]
-
     def plot_auc_independent(self):
 
         rows = int(ceil(len(self) / 2))
         columns = 2
         fig, axes = plt.subplots(rows, columns, figsize=(columns * 5, rows * 5))
+        # 当rows==1 是，axes dim只有1
+        axes = axes.reshape(rows, columns)
         for i, ev in enumerate(self):
             x = i // 2
             y = i % 2

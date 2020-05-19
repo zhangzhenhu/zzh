@@ -15,44 +15,33 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_auc_score, roc_curve, auc
 from time import time
 
-from .DeepFM import DeepFM
-from .model import Model
-from evaluation import Evaluation
-from feature.feature import pandas_to_numpy_fm
+from ._deep_fm import DeepFM as TfDeepFM
+from .model import ABCModel
+
+# from evaluation import Evaluation
+from zzh.mllib.feature import pandas_to_numpy_fm, DataSet
 
 
-class Deepfm(Model):
+class DeepFM(ABCModel):
     name = "Deepfm"
     description = "Deepfm"
 
-    def __init__(self, evaluation=None, param=None, **data_param):
-        self.data_param = data_param
-        self.model = None
-        # self.y_pred = None
-        # self.y_true = None
-        # self.feature = self.data_param.get('feature_list', None)
-        #
-        # self.Xi_train = self.data_param.get('Xi_train', None)
-        # self.Xv_train = self.data_param.get('Xv_train', None)
-        # self.X_train = self.data_param.get('X_train', None)
-        # self.y_train = self.data_param.get('y_train', None)
-        #
-        # self.Xi_test = self.data_param.get('Xi_test', None)
-        # self.Xv_test = self.data_param.get('Xv_test', None)
-        # self.X_test = self.data_param.get('X_test', None)
-        # self.y_test = self.data_param.get('y_test', None)
-        self._model = DeepFM(**self.dfm_params)
-        # self._model = None
-        # self.train_x = self.data_param.get('feature_train', None)
-        # self.train_y = self.data_param.get('label_train', None)
-        # self.test_x = self.data_param.get('feature_test', None)
-        # self.test_y = self.data_param.get('label_test', None)
-        if evaluation is None:
-            self.evaluation = Evaluation(model=self)
-        else:
-            self.evaluation = evaluation
-        if isinstance(param, dict):
-            self.param.update(param)
+    def _fit(self, dataset: DataSet, **options):
+        # self.param = param
+        # params = {'max_depth': range(2, 6, 1)}
+        # params = {'min_child_weight': range(1, 6, 1)}
+        # params = {'gamma': [0, 0.1, 0.2, 0.3]}
+        # self.adjust_params(params)
+
+        #  self.train_x = self.select_features(self.train_x)
+        self.m = TfDeepFM(**self.model_params)
+        self.m.init_graph()
+
+        self.m.fit(dataset.xi, dataset.x, dataset.y)
+        # print('model XGB fit begin:')
+        # self.m.fit(dataset.x, dataset.y, **options)
+
+        return self
 
     def fit_bak(self, **param):
         self.dfm_params = param

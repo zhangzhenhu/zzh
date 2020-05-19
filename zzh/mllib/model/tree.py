@@ -22,6 +22,7 @@ from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 import matplotlib.pyplot as plt
 import os
 from zzh.mllib.model import ABCModel
+from zzh.mllib.feature import DataSet
 
 plt.rcParams['font.sans-serif'] = ['SimHei']  # 用来正常显示中文标签
 plt.rcParams['axes.unicode_minus'] = False  # 用来正常显示负号
@@ -43,7 +44,7 @@ class Xgboost(ABCModel):
     # min_child_weight:, max_depth:, gamma:,
     description = "xgboost"
 
-    def fit(self, x, y, **options):
+    def _fit(self, dataset: DataSet, **options):
         # self.param = param
         # params = {'max_depth': range(2, 6, 1)}
         # params = {'min_child_weight': range(1, 6, 1)}
@@ -52,14 +53,8 @@ class Xgboost(ABCModel):
 
         #  self.train_x = self.select_features(self.train_x)
         self.m = XGBClassifier(**self.model_params)
-        print('model XGB fit begin:')
-        self.m.fit(x, y, **options)
-
-        # 评估训练集上的效果
-        # print('model XGB predict begin:')
-        # self.train_y_pred = self.predict(self.train_x)
-        # self.train_y = np.array(self.train_y)
-        # self.train_y_pred = np.array(self.train_y_pred)
+        # print('model XGB fit begin:')
+        self.m.fit(dataset.x, dataset.y, **options)
 
         return self
 
@@ -88,18 +83,6 @@ class Xgboost(ABCModel):
     #     self.model = XGBClassifier(**self.param)
     #     return self.model
 
-    def predict(self, x):
-        assert x is not None
-
-        y_prob = self.model.predict_proba(x)
-        y_prob = y_prob.tolist()
-        y_prob = [item[1] for item in y_prob]
-        y_prob = np.array(y_prob)
-
-        # self.y_pred = y_prob
-
-        return y_prob
-
 
 class GradientBoostingTree(ABCModel):
     name = "GBDT"
@@ -109,112 +92,67 @@ class GradientBoostingTree(ABCModel):
 
     description = "GBDT"
 
-    def fit(self, x, y, **options):
-        # self.param = param
+    def _fit(self, dataset: DataSet, **options):
         self.m = GradientBoostingClassifier(**self.model_params)
-
-        #         print('begin GridSearch')
-        #         params={'min_samples_leaf':list(range(100,301,50)),'min_samples_split':list(range(700,901,50))}
-        #         self.adjust_params(params)
-
-        # print('model GBDT fit begin:')
-        self.m.fit(x, y)
-
-        # 评估训练集上的效果
-        # print('model GBDT predict begin:')
-        # self.train_y_pred = self.predict(self.train_x)
-        # self.train_y = np.array(self.train_y)
-        # self.train_y_pred = np.array(self.train_y_pred)
+        self.m.fit(dataset.x, dataset.y)
 
         return self
 
-    def model_importiance_feature(self):
-        feat_imp = pd.Series(self.model.feature_importances_, self.feature).sort_values(ascending=False)
+    def importance_feature(self):
+        feat_imp = pd.Series(self.m.feature_importances_, self.trainset.header).sort_values(ascending=False)
         plt.figure(figsize=(20, 6))
         feat_imp.plot(kind='bar', title='model %s Feature Importances' % self.name)
         plt.ylabel('Feature Importance Score')
         plt.show()
 
-    def train_result_evaluate(self, threshold=0.5):
-        self.train_ev = self.evaluation.evaluate(y_true=self.train_y, y_pred=self.train_y_pred, threshold=threshold)
-
-    def train_confusion_matrix(self, threshold=0.5):
-        self.evaluation.confusion_matrix(y_true=self.train_y, y_pred=self.train_y_pred, threshold=threshold)
-
-    def adjust_params(self, params=None, CV=5, scoring='roc_auc', n_iter=10):
-        self.cvmodel = GridSearchCV(self.model, params, cv=CV, scoring=scoring, n_jobs=-1)
-        self.cvmodel.fit(self.train_x, self.train_y)
+    def adjust_params(self, params=None, cv=5, scoring='roc_auc', n_iter=10):
+        self.cvmodel = GridSearchCV(self.m, params, cv=cv, scoring=scoring, n_jobs=-1)
+        self.cvmodel.fit(self.trainset.x, self.trainset.y)
         self.cv_result = pd.DataFrame.from_dict(self.cvmodel.cv_results_)
         self.best_params = self.cvmodel.best_params_
         self.best_score_ = self.cvmodel.best_score_
         print(self.cv_result)
         print('%s在%s参数下，训练集AUC最高为%s:' % (self.name, self.best_params, self.best_score_))
 
-        return self.model
-
-    def predict(self, x):
-        assert x is not None
-
-        y_prob = self.model.predict_proba(x)
-        y_prob = y_prob.tolist()
-        y_prob = [item[1] for item in y_prob]
-        y_prob = np.array(y_prob)
-
-        # self.y_pred = y_prob
-
-        return y_prob
+        return self.m
 
 
-class GBDT_LR(ABCModel):
-    name = "GBDT_LR"
+class GBDTLR(ABCModel):
+    name = "GBDT+LR"
     # 模型参数
     #     param = {'n_estimators': 150, 'learning_rate': 0.1, 'max_depth': 6, 'min_samples_split': 800,
     #              'min_samples_leaf': 150, 'max_features': None, 'subsample': 0.8, 'random_state': 10}
 
     description = "GBDT_LR"
 
-    def fit(self, x, y, **options):
+    def _fit(self, dataset: DataSet, **options):
         # self.param = param
         # print('model GBDT_LR fit begin:')
+        # GBDT 模型
         grd = GradientBoostingClassifier(**self.model_params)
-        grd_enc = OneHotEncoder()
-        grd_lm = LogisticRegression(penalty='l2', C=1, solver='lbfgs')
-        grd.fit(x, y)
-        grd_enc.fit(grd.apply(x)[:, :, 0])
-        grd_lm.fit(grd_enc.transform(grd.apply(self.train_x)[:, :, 0]), self.train_y)
-        self.grd = grd
-        self.grd_enc = grd_enc
-        self.m = grd_lm
+        grd.fit(dataset.x, dataset.y)
+        #
+        enc = OneHotEncoder()
+        enc.fit(grd.apply(dataset.x)[:, :, 0])
 
-        # 评估训练集上的效果
-        # print('model GBDT_LR predict begin:')
-        # self.train_y_pred = self.predict(self.train_x)
-        # self.train_y = np.array(self.train_y)
-        # self.train_y_pred = np.array(self.train_y_pred)
+        lm = LogisticRegression(penalty='l2', C=1, solver='lbfgs')
+        x = enc.transform(grd.apply(dataset.x)[:, :, 0])
+        lm.fit(x, dataset.y)
 
+        self.tree = grd
+        self.enc = enc
+        self.m = lm
         return self
 
-    def model_importiance_feature(self):
+    def importance_feature(self):
         pass
 
-    def train_result_evaluate(self, threshold=0.5):
-        self.train_ev = self.evaluation.evaluate(y_true=self.train_y, y_pred=self.train_y_pred, threshold=threshold)
-
-    def train_confusion_matrix(self, threshold=0.5):
-        self.evaluation.confusion_matrix(y_true=self.train_y, y_pred=self.train_y_pred, threshold=threshold)
-
-    def predict(self, x):
-        assert x is not None
-
-        y_prob = self.model.predict_proba(self.grd_enc.transform(self.grd.apply(x)[:, :, 0]))
-        y_prob = y_prob.tolist()
-        y_prob = [item[1] for item in y_prob]
-        y_prob = np.array(y_prob)
-
+    def predict(self, x, **options):
+        y_prob = self.m.predict_proba(self.enc.transform(self.tree.apply(x)[:, :, 0]))
         return y_prob
 
 
-class RF_LR(ABCModel):
+class RFLR(ABCModel):
     name = "RF_LR"
     # 模型参数
     #     param = {'n_estimators': 180, 'n_jobs': -1, 'max_depth': 8, 'min_samples_split': 80,
@@ -222,44 +160,29 @@ class RF_LR(ABCModel):
 
     description = "RF_LR"
 
-    def fit(self, feature_list, threshold=0.5, **param):
-        self.param = param
-        rf = RandomForestClassifier(**self.param)
-        rf_enc = OneHotEncoder()
-        rf_lm = LogisticRegression(penalty='l2', C=1, solver='lbfgs')
-        rf.fit(self.train_x, self.train_y)
-        rf_enc.fit(rf.apply(self.train_x))
-        rf_lm.fit(rf_enc.transform(rf.apply(self.train_x)), self.train_y)
-        self.rf = rf
-        self.rf_enc = rf_enc
-        self.model = rf_lm
+    def _fit(self, dataset: DataSet, **options):
+        # self.param = param
+        # print('model GBDT_LR fit begin:')
+        # GBDT 模型
+        rf = RandomForestClassifier(**options)
+        rf.fit(dataset.x, dataset.y)
+        #
+        enc = OneHotEncoder()
+        enc.fit(rf.apply(dataset.x)[:, :, 0])
 
-        # 评估训练集上的效果
-        self.train_y_pred = self.predict(self.train_x)
-        self.train_y = np.array(self.train_y)
-        self.train_y_pred = np.array(self.train_y_pred)
+        lm = LogisticRegression(**self.model_params)
+        x = enc.transform(rf.apply(dataset.x)[:, :, 0])
+        lm.fit(x, dataset.y)
 
-        return self
+        self.tree = rf
+        self.enc = enc
+        self.m = lm
 
-    def model_importiance_feature(self):
+    def importance_feature(self):
         pass
 
-    def train_result_evaluate(self, threshold=0.5):
-        self.train_ev = self.evaluation.evaluate(y_true=self.train_y, y_pred=self.train_y_pred, threshold=threshold)
-
-    def train_confusion_matrix(self, threshold=0.5):
-        self.evaluation.confusion_matrix(y_true=self.train_y, y_pred=self.train_y_pred, threshold=threshold)
-
-    def predict(self, x):
-        assert x is not None
-
-        y_prob = self.model.predict_proba(self.rf_enc.transform(self.rf.apply(x)))
-        y_prob = y_prob.tolist()
-        y_prob = [item[1] for item in y_prob]
-        y_prob = np.array(y_prob)
-
-        # self.y_pred = y_prob
-
+    def predict(self, x, **options):
+        y_prob = self.m.predict_proba(self.enc.transform(self.tree.apply(x)[:, :, 0]))
         return y_prob
 
 
@@ -271,114 +194,89 @@ class RandomForest(ABCModel):
 
     description = "RF"
 
-    def fit(self, **param):
-        self.param = param
-        self.model = RandomForestClassifier(**self.param)
-        #         params = {'max_depth': range(5, 15, 2),'min_samples_split':list(range(80,131,10))}
-        #         params = {'n_estimators': range(100, 601, 50)}
-        #         params = {'max_features': range(5, 28, 1)}
-        #         params = {'min_samples_split': list(range(100, 121, 10)),'min_samples_leaf':list(range(30,71,10))}
-        #         self.adjust_params(params)
+    def _fit(self, dataset: DataSet, **options):
+        # self.param = param
+        # params = {'max_depth': range(2, 6, 1)}
+        # params = {'min_child_weight': range(1, 6, 1)}
+        # params = {'gamma': [0, 0.1, 0.2, 0.3]}
+        # self.adjust_params(params)
 
-        print('model RF fit begin:')
-        self.model.fit(self.train_x, self.train_y)
-
-        # 评估训练集上的效果
-        print('model RF predict begin:')
-        self.train_y_pred = self.predict(self.train_x)
-        self.train_y = np.array(self.train_y)
-        self.train_y_pred = np.array(self.train_y_pred)
+        #  self.train_x = self.select_features(self.train_x)
+        self.m = RandomForestClassifier(**self.model_params)
+        # print('model XGB fit begin:')
+        self.m.fit(dataset.x, dataset.y, **options)
 
         return self
 
-    def model_importiance_feature(self):
-        feat_imp = pd.Series(self.model.feature_importances_, self.feature).sort_values(ascending=False)
+    def importance_feature(self):
+        feat_imp = pd.Series(self.m.feature_importances_, self.trainset.header).sort_values(ascending=False)
         plt.figure(figsize=(20, 6))
         feat_imp.plot(kind='bar', title='model %s Feature Importances' % self.name)
         plt.ylabel('Feature Importance Score')
         plt.show()
 
-    def train_result_evaluate(self, threshold=0.5):
-        self.train_ev = self.evaluation.evaluate(y_true=self.train_y, y_pred=self.train_y_pred, threshold=threshold)
-
-    def train_confusion_matrix(self, threshold=0.5):
-        self.evaluation.confusion_matrix(y_true=self.train_y, y_pred=self.train_y_pred, threshold=threshold)
-
     def adjust_params(self, params=None, CV=5, scoring='f1', n_iter=10):
-        self.cvmodel = GridSearchCV(self.model, params, cv=CV, scoring=scoring, n_jobs=-1)
-        self.cvmodel.fit(self.train_x, self.train_y)
+        self.cvmodel = GridSearchCV(self.m, params, cv=CV, scoring=scoring, n_jobs=-1)
+        self.cvmodel.fit(self.trainset.x, self.trainset.y)
         self.cv_result = pd.DataFrame.from_dict(self.cvmodel.cv_results_)
         self.best_params = self.cvmodel.best_params_
         self.best_score_ = self.cvmodel.best_score_
         print(self.cv_result)
         print('%s在%s参数下，训练集f1最高为%s:' % (self.name, self.best_params, self.best_score_))
 
-    def predict(self, x):
-        assert x is not None
-
-        y_prob = self.model.predict_proba(x)
-        y_prob = y_prob.tolist()
-        y_prob = [item[1] for item in y_prob]
-        y_prob = np.array(y_prob)
-
-        # self.y_pred = y_prob
-
-        return y_prob
-
-
-class DecisionTree(ABCModel):
-    name = "DecisionTree"
-    # 模型参数
-    param = {'max_depth': 9, 'min_samples_split': 220, 'min_samples_leaf': 18, 'criterion': 'gini',
-             'max_features': None}
-    #
-    description = "决策树"
-
-    def fit(self):
-        self.model = DecisionTreeClassifier(**self.param)
-        # params = {'min_samples_leaf': range(14, 26, 2)}
-        # params = {'max_features': range(5, 44, 2)}
-        # params = {'max_depth': range(4, 12, 1), 'min_samples_split': range(40, 260, 20)}
-        # params = {'criterion': ['gini', 'entropy']}
-        # self.adjust_params(params)
-        self.model.fit(self.train_x, self.train_y)
-        # 评估训练集上的效果
-        self.train_y_pred = self.predict(self.train_x)
-
-        return self
-
-    def model_importiance_feature(self):
-        feat_imp = pd.Series(self.model.feature_importances_, self.feature_list).sort_values(ascending=False)
-        plt.figure(figsize=(20, 6))
-        feat_imp.plot(kind='bar', title='model %s Feature Importances' % self.name)
-        plt.ylabel('Feature Importance Score')
-        plt.show()
-
-    def train_result_evaluate(self, threshold=0.5):
-        self.train_ev = self.evaluation.evaluate(y_true=self.train_y, y_pred=self.train_y_pred, threshold=threshold)
-
-    def train_confusion_matrix(self, threshold=0.5):
-        self.evaluation.confusion_matrix(y_true=self.train_y, y_pred=self.train_y_pred, threshold=threshold)
-
-    def adjust_params(self, params=None, CV=10, scoring='accuracy', n_iter=10):
-        self.cvmodel = GridSearchCV(self.model, params, cv=CV, scoring=scoring, n_jobs=os.cpu_count())
-        self.cvmodel.fit(self.train_x, self.train_y)
-        self.best_params = self.cvmodel.best_params_
-        self.best_score_ = self.cvmodel.best_score_
-        print('%s在%s参数下，训练集准确率最高为%s:' % (self.name, self.best_params, self.best_score_))
-
-        self.model = DecisionTreeClassifier(**self.param)
-        # self.model.fit(self.train_x, self.train_y)
-        return self.cvmodel
-
-    def predict(self, x):
-        assert x is not None
-
-        y_prob = self.model.predict_proba(x)
-        y_prob = y_prob.tolist()
-        y_prob = [item[1] for item in y_prob]
-        y_prob = np.array(y_prob)
-
-        # self.y_pred = y_prob
-
-        return y_prob
+# class DecisionTree(ABCModel):
+#     name = "DecisionTree"
+#     # 模型参数
+#     param = {'max_depth': 9, 'min_samples_split': 220, 'min_samples_leaf': 18, 'criterion': 'gini',
+#              'max_features': None}
+#     #
+#     description = "决策树"
+#
+#     def fit(self):
+#         self.model = DecisionTreeClassifier(**self.param)
+#         # params = {'min_samples_leaf': range(14, 26, 2)}
+#         # params = {'max_features': range(5, 44, 2)}
+#         # params = {'max_depth': range(4, 12, 1), 'min_samples_split': range(40, 260, 20)}
+#         # params = {'criterion': ['gini', 'entropy']}
+#         # self.adjust_params(params)
+#         self.model.fit(self.train_x, self.train_y)
+#         # 评估训练集上的效果
+#         self.train_y_pred = self.predict(self.train_x)
+#
+#         return self
+#
+#     def model_importiance_feature(self):
+#         feat_imp = pd.Series(self.model.feature_importances_, self.feature_list).sort_values(ascending=False)
+#         plt.figure(figsize=(20, 6))
+#         feat_imp.plot(kind='bar', title='model %s Feature Importances' % self.name)
+#         plt.ylabel('Feature Importance Score')
+#         plt.show()
+#
+#     def train_result_evaluate(self, threshold=0.5):
+#         self.train_ev = self.evaluation.evaluate(y_true=self.train_y, y_pred=self.train_y_pred, threshold=threshold)
+#
+#     def train_confusion_matrix(self, threshold=0.5):
+#         self.evaluation.confusion_matrix(y_true=self.train_y, y_pred=self.train_y_pred, threshold=threshold)
+#
+#     def adjust_params(self, params=None, CV=10, scoring='accuracy', n_iter=10):
+#         self.cvmodel = GridSearchCV(self.model, params, cv=CV, scoring=scoring, n_jobs=os.cpu_count())
+#         self.cvmodel.fit(self.train_x, self.train_y)
+#         self.best_params = self.cvmodel.best_params_
+#         self.best_score_ = self.cvmodel.best_score_
+#         print('%s在%s参数下，训练集准确率最高为%s:' % (self.name, self.best_params, self.best_score_))
+#
+#         self.model = DecisionTreeClassifier(**self.param)
+#         # self.model.fit(self.train_x, self.train_y)
+#         return self.cvmodel
+#
+#     def predict(self, x):
+#         assert x is not None
+#
+#         y_prob = self.model.predict_proba(x)
+#         y_prob = y_prob.tolist()
+#         y_prob = [item[1] for item in y_prob]
+#         y_prob = np.array(y_prob)
+#
+#         # self.y_pred = y_prob
+#
+#         return y_prob
