@@ -32,7 +32,7 @@ def select_valid(y_true, y_pred):
     """
 
     # 找出非空值的位置
-    valid_mask = ~np.isnan(y_pred[:,0])
+    valid_mask = ~np.isnan(y_pred[:, 0])
 
     y_pred = y_pred[valid_mask]
     y_true = y_true[valid_mask]
@@ -137,7 +137,7 @@ class Evaluation:
         #     threshold = self.threshold
         # dataset = self.dataset
         # threshold = self.threshold
-        mc = self.eval_binary(self.y_true, self.y_pred, self.y_label)
+        mc = self.eval_binary(self.y_true, self.y_pred[:, 1], self.y_label)
         mc['coverage'] = self.y_pred.shape[0] / self.dataset.y.shape[0]
         mc['dataset'] = self.dataset.name
         mc['name'] = self.name
