@@ -100,6 +100,19 @@ class ABCModel(abc.ABC):
         """
         raise NotImplemented
 
+    def test(self, dataset, **options):
+        self.testset = dataset
+        self.testset.predict = self.predict(dataset.x)
+
+    # @abc.abstractmethod
+    # def _test(self, dataset: DataSet, **options):
+    #         """
+    #
+    #         :param dataset:
+    #         :param options:
+    #         :return:
+    #         """
+    #         raise NotImplemented
     @abc.abstractmethod
     def predict(self, x):
         raise NotImplemented
@@ -118,13 +131,20 @@ class ABCModel(abc.ABC):
     def load(self, model_file):
         raise NotImplemented
 
-    def evaluate(self, dataset: DataSet, threshold=None):
-        dataset = DataSet().update(dataset)
-        dataset.predict = self.predict(dataset.x)
+    def evaluate(self, threshold=None):
 
-        ev = Evaluation(dataset=dataset, threshold=threshold, model=self)
+        # dataset = DataSet().update(dataset)
+        # dataset.predict = self.predict(dataset.x)
+        if self.trainset and self.trainset.predict:
+            train_ev = Evaluation(name=self.name, dataset=self.trainset).eval()
+        else:
+            train_ev = None
+        if self.testset and self.testset.predict:
+            test_ev = Evaluation(name=self.name, dataset=self.testset).eval()
+        else:
+            test_ev = None
 
-        return ev.eval()
+        return train_ev, test_ev
 
     # def test(self):
     #     """
