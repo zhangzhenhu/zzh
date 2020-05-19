@@ -256,6 +256,7 @@ class EvaluationPool(List):
         df.sort_values(sort_by, ascending=ascending, inplace=True)
         if cols is None:
             cols = ['trainset',
+                    'coverage',
                     'auc',
                     'accuracy',
                     'precision_1',
@@ -265,7 +266,10 @@ class EvaluationPool(List):
                     'mae',
                     'mse',
                     'uae',
-                    'f1', ]
+                    'f1',
+                    'tpr',
+                    'fpr',
+                    ]
         return df[cols]
 
     # def eval(self, target="test", dataset=None):
