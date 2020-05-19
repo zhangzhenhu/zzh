@@ -22,6 +22,7 @@ from sklearn.feature_selection import SelectKBest
 from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.externals import joblib
 from zzh.mllib.model import ABCModel
+from zzh.mllib.feature import DataSet
 
 
 # from zzh.mllib.evaluation import Evaluation
@@ -35,7 +36,7 @@ class LR(ABCModel):
     }
     description = "逻辑回归"
 
-    def fit(self, x, y, **options):
+    def fit(self, dataset: DataSet, **options):
         # self.feature_list = kwargs.get('feature_list', None)
         # solver_name = kwargs.get('solver_name', 'lbfgs')
         # penalty = kwargs.get('penalty', 'l2')
@@ -62,7 +63,7 @@ class LR(ABCModel):
         # fit_data = self.train_x.copy()
         # fit_data = self.scalar_.transform(fit_data)
         # fit_data = self.pca.transform(fit_data)
-        self.m.fit(x, y, **options)
+        self.m.fit(dataset.x, dataset.y, **options)
 
         # 评估训练集上的效果
         # self.train_y_pred = self.predict(self.train_x)
@@ -72,7 +73,7 @@ class LR(ABCModel):
 
         return self
 
-    def predict(self, x, thereshold=None, **options):
+    def predict(self, x, threshold=None, **options):
         assert x
         # assert self.m
 
@@ -80,15 +81,13 @@ class LR(ABCModel):
         # x = self.pca.transform(x)
 
         y_prob = self.m.predict_proba(x)
-        if thereshold is not None:
-            y_prob = self.convert_to_label(y_prob, thereshold)
+        # if threshold is not None:
+        #     y_prob = self.convert_to_label(y_prob, thereshold)
         # y_prob = y_prob.tolist()
         # y_prob = [item[1] for item in y_prob]
         # y_prob = np.array(y_prob)
 
         return y_prob
-
-
 
     def load(self, model_file):
         pass

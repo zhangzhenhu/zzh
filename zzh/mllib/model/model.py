@@ -13,6 +13,7 @@ import pandas as pd
 import numpy as np
 import random
 import abc
+from zzh.mllib.feature import DataSet
 # from IPython.display import display
 from zzh.mllib.evaluation import Evaluation
 
@@ -42,9 +43,11 @@ class ABCModel(abc.ABC):
     # train_ev = None  # type: dict
     # test_ev = None  # type: dict
 
-    def __init__(self, evaluation=None, model_params: Dict = None, **data_param):
+    def __init__(self, model_params: Dict = None, name=None):
         # self.data_param = data_param
         self.m = None
+        if name:
+            self.name = name
         # self.y_pred = None
         # self.y_true = None
         # self.feature = self.data_param.get('feature_list', None)
@@ -52,10 +55,10 @@ class ABCModel(abc.ABC):
         # self.train_y = self.data_param.get('label_train', None)
         # self.test_x = self.data_param.get('feature_test', None)
         # self.test_y = self.data_param.get('label_test', None)
-        if evaluation is None:
-            self.evaluation = Evaluation(model=self)
-        else:
-            self.evaluation = evaluation
+        # if evaluation is None:
+        #     self.evaluation = Evaluation(model=self)
+        # else:
+        #     self.evaluation = evaluation
         # if isinstance(params, dict):
         #     self.params.update(params)
         self.model_params = self.default.copy()
@@ -79,11 +82,10 @@ class ABCModel(abc.ABC):
         return df_x, df_y
 
     @abc.abstractmethod
-    def fit(self, x, y, **options):
+    def fit(self, dataset: DataSet, **options):
         """
 
-        :param x:
-        :param y:
+        :param dataset:
         :param options:
         :return:
         """
@@ -107,9 +109,13 @@ class ABCModel(abc.ABC):
     def load(self, model_file):
         raise NotImplemented
 
-    def evaluate(self, x, y, threshold=None):
-        y_prob = self.predict(x)
-        return self.evaluation.evaluate(y_true=y, y_pred=y_prob, threshold=threshold)
+    def evaluate(self, dataset: DataSet, threshold=None):
+        dataset = DataSet().update(dataset)
+        dataset.predict = self.predict(dataset.x)
+
+        ev = Evaluation(dataset=dataset, threshold=threshold, model=self)
+
+        return ev.eval()
 
     # def test(self):
     #     """
