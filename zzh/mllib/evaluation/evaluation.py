@@ -32,7 +32,7 @@ def select_valid(y_true, y_pred):
     """
 
     # 找出非空值的位置
-    valid_mask = ~np.isnan(y_pred)
+    valid_mask = ~np.isnan(y_pred[:,0])
 
     y_pred = y_pred[valid_mask]
     y_true = y_true[valid_mask]
