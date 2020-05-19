@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 #
-# Copyright (c) 2014 Hal.com, Inc. All Rights Reserved
+#
 #
 """
 模块用途描述
@@ -72,7 +72,7 @@ class LR(ABCModel):
 
         return self
 
-    def predict_prob(self, x, **options):
+    def predict(self, x, thereshold=None, **options):
         assert x
         # assert self.m
 
@@ -80,17 +80,15 @@ class LR(ABCModel):
         # x = self.pca.transform(x)
 
         y_prob = self.m.predict_proba(x)
+        if thereshold is not None:
+            y_prob = self.convert_to_label(y_prob, thereshold)
         # y_prob = y_prob.tolist()
         # y_prob = [item[1] for item in y_prob]
         # y_prob = np.array(y_prob)
 
         return y_prob
 
-    def predict(self, x, thereshold=0.5):
-        y_prob = self.predict_prob(x)
-        y_prob[y_prob >= 0.5] = 1
-        y_prob[y_prob < 0.5] = 1
-        return y_prob
+
 
     def load(self, model_file):
         pass

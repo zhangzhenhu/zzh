@@ -1,7 +1,6 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
 #
-# Copyright (c) 2014 Hal.com, Inc. All Rights Reserved
 #
 """
 模块用途描述
@@ -9,13 +8,13 @@
 Authors: zhangzhenhu
 Date:    2019/4/3 14:30
 """
-# from evaluation import Evaluation
 from typing import Dict
 import pandas as pd
 import numpy as np
 import random
 import abc
-from IPython.display import display
+# from IPython.display import display
+from zzh.mllib.evaluation import Evaluation
 
 
 # from imblearn.over_sampling import SMOTE,ADASYN,RandomOverSampler
@@ -53,10 +52,10 @@ class ABCModel(abc.ABC):
         # self.train_y = self.data_param.get('label_train', None)
         # self.test_x = self.data_param.get('feature_test', None)
         # self.test_y = self.data_param.get('label_test', None)
-        # if evaluation is None:
-        #     self.evaluation = Evaluation(model=self)
-        # else:
-        #     self.evaluation = evaluation
+        if evaluation is None:
+            self.evaluation = Evaluation(model=self)
+        else:
+            self.evaluation = evaluation
         # if isinstance(params, dict):
         #     self.params.update(params)
         self.model_params = self.default.copy()
@@ -94,6 +93,12 @@ class ABCModel(abc.ABC):
     def predict(self, x):
         raise NotImplemented
 
+    @staticmethod
+    def convert_to_label(y_prob, thereshold=0.5):
+        y_prob[y_prob >= 0.5] = 1
+        y_prob[y_prob < 0.5] = 1
+        return y_prob
+
     @abc.abstractmethod
     def save(self, save_path):
         raise NotImplemented
@@ -102,21 +107,22 @@ class ABCModel(abc.ABC):
     def load(self, model_file):
         raise NotImplemented
 
-    def evaluate(self, threshold=0.5):
-        return self.evaluation.evaluate(y_true=self.y_true, y_pred=self.y_pred, threshold=threshold)
+    def evaluate(self, x, y, threshold=None):
+        y_prob = self.predict(x)
+        return self.evaluation.evaluate(y_true=y, y_pred=y_prob, threshold=threshold)
 
-    def test(self):
-        """
-        评估测试集上的效果
-        :return:
-        """
-
-        self.test_y_pred = self.predict(self.test_x)
-
-    def test_result_evaluate(self, threshold=0.5):
-        self.test_ev = self.evaluation.evaluate(y_true=self.test_y, y_pred=self.test_y_pred, threshold=threshold)
-
-    def test_confusion_matrix(self, threshold=0.5):
-        assert self.test_y is not None
-        assert self.test_y_pred is not None
-        self.evaluation.confusion_matrix(y_true=self.test_y, y_pred=self.test_y_pred, threshold=threshold)
+    # def test(self):
+    #     """
+    #     评估测试集上的效果
+    #     :return:
+    #     """
+    #
+    #     self.test_y_pred = self.predict(self.test_x)
+    #
+    # def test_result_evaluate(self, threshold=0.5):
+    #     self.test_ev = self.evaluation.evaluate(y_true=self.test_y, y_pred=self.test_y_pred, threshold=threshold)
+    #
+    # def test_confusion_matrix(self, threshold=0.5):
+    #     assert self.test_y is not None
+    #     assert self.test_y_pred is not None
+    #     self.evaluation.confusion_matrix(y_true=self.test_y, y_pred=self.test_y_pred, threshold=threshold)

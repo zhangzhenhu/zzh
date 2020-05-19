@@ -1,4 +1,4 @@
-# !/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # @Time    : 2019-07-09 19:21
 # @Author  : zhangzhenhu
@@ -15,8 +15,6 @@ from pandas.api.types import is_object_dtype
 from sklearn.model_selection import train_test_split
 
 from .dataset import DataSet
-
-
 
 
 def pandas_to_numpy_ml(df_data: pd.DataFrame, feature_list: list, one_hot: dict):
