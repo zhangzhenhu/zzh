@@ -248,13 +248,25 @@ class EvaluationPool(List):
     #                          'auc_score',
     #                          'f1_score', 'description']):
     #     self.metrics = metrics
-    def eval(self, sort_by="auc", ascending=False):
+    def eval(self, sort_by="auc", ascending=False, cols=None):
         records = [e.eval() for e in self]
         df = pd.DataFrame.from_records(data=records)
         df.set_index('name', inplace=True)
         df.sort_index(axis=1, )
         df.sort_values(sort_by, ascending=ascending, inplace=True)
-        return df
+        if cols is None:
+            cols = ['trainset',
+                    'auc',
+                    'accuracy',
+                    'precision_1',
+                    'recall_1',
+                    'precision_0',
+                    'recall_0',
+                    'mae',
+                    'mse',
+                    'uae',
+                    'f1', ]
+        return df[cols]
 
     # def eval(self, target="test", dataset=None):
     #     # if len(self) == 0:
