@@ -65,6 +65,9 @@ class ABCModel(abc.ABC):
         if options:
             self.model_params.update(options)
 
+        self.trainset = None
+        self.testset = None
+
     def tf_sample(self, df_x, df_y):
         """
         调整正负样本比例
@@ -81,8 +84,14 @@ class ABCModel(abc.ABC):
         df_y = [df_y[i] for i in range(len(df_y)) if i not in se_1_sub]
         return df_x, df_y
 
-    @abc.abstractmethod
     def fit(self, dataset: DataSet, **options):
+        self.trainset = dataset
+        self._fit(dataset, **options)
+        self.trainset.predict = self.predict(dataset.x)
+        return self
+
+    @abc.abstractmethod
+    def _fit(self, dataset: DataSet, **options):
         """
 
         :param dataset:

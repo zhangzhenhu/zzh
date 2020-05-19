@@ -39,6 +39,10 @@ class DataSet:
     def set_threshold(self, threshold):
         self.threshold = threshold
         return self
+
+    def copy(self):
+
+        return DataSet().other(self)
 # class DataSet:
 #
 #     def __init__(self):

@@ -36,7 +36,7 @@ class LR(ABCModel):
     }
     description = "逻辑回归"
 
-    def fit(self, dataset: DataSet, **options):
+    def _fit(self, dataset: DataSet, **options):
         # self.feature_list = kwargs.get('feature_list', None)
         # solver_name = kwargs.get('solver_name', 'lbfgs')
         # penalty = kwargs.get('penalty', 'l2')
@@ -64,19 +64,14 @@ class LR(ABCModel):
         # fit_data = self.scalar_.transform(fit_data)
         # fit_data = self.pca.transform(fit_data)
         self.m.fit(dataset.x, dataset.y, **options)
-
         # 评估训练集上的效果
         # self.train_y_pred = self.predict(self.train_x)
         # self.train_y = np.array(self.train_y)
         # self.train_y_pred = np.array(self.train_y_pred)
         # self.train_ev = self.evaluation.evaluate(y_true=self.train_y, y_pred=self.train_y_pred, threshold=0.5)
 
-        return self
 
-    def predict(self, x, threshold=None, **options):
-        assert x
-        # assert self.m
-
+    def predict(self, x, **options):
         # x = self.scalar_.transform(x)
         # x = self.pca.transform(x)
 
