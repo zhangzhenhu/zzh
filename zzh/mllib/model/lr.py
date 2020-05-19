@@ -16,11 +16,11 @@ import random
 import argparse
 from sklearn import preprocessing
 from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import GridSearchCV
-from sklearn.decomposition import PCA, KernelPCA
-from sklearn.feature_selection import SelectKBest
-from sklearn.pipeline import Pipeline, FeatureUnion
-from sklearn.externals import joblib
+# from sklearn.model_selection import GridSearchCV
+# from sklearn.decomposition import PCA, KernelPCA
+# from sklearn.feature_selection import SelectKBest
+# from sklearn.pipeline import Pipeline, FeatureUnion
+# from sklearn.externals import joblib
 from zzh.mllib.model import ABCModel
 from zzh.mllib.feature import DataSet
 
