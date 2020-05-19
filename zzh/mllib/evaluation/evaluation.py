@@ -197,9 +197,9 @@ class Evaluation:
         # print("")
 
     def roc_curve(self):
-        return metrics.roc_curve(y_true=self.y_true, y_score=self.y_pred[:,1])
+        return metrics.roc_curve(y_true=self.y_true, y_score=self.y_pred[:, 1])
 
-    def plot_auc(self,gca=None):
+    def plot_auc(self, gca=None):
 
         # if y_true is None and self.model is not None:
         #     y_true = self.model.y_true
@@ -303,37 +303,18 @@ class EvaluationPool(List):
     #     # else:
     #     #     records = [model.test_ev for model in self]
 
-    def plot_separated(self, target="test"):
+    def plot_auc_independent(self):
 
         rows = int(ceil(len(self) / 2))
         columns = 2
         fig, axes = plt.subplots(rows, columns, figsize=(columns * 5, rows * 5))
-        if target == "train":
-            for i, model in enumerate(self):
-                x = i // 2
-                y = i % 2
-                # plt.subplot(rows, columns, i)
-                model.evaluation.plot_auc(y_true=model.train_y, y_pred=model.train_y_pred, gca=axes[x, y])
-        else:
-            for i, model in enumerate(self):
-                x = i // 2
-                y = i % 2
-                # plt.subplot(rows, columns, i)
-                model.evaluation.plot_auc(y_true=model.test_y, y_pred=model.test_y_pred, gca=axes[x, y])
+        for i, ev in enumerate(self):
+            x = i // 2
+            y = i % 2
+            ev.plot_auc(gca=axes[x, y])
 
-    def plot_allin(self, gca=None):
+    def plot_auc_together(self, gca=None):
 
-        # records = [e.eval() for e in self]
-
-        # data = []
-
-        # for model in self.models:
-        #     valid_mask = ~np.isnan(model.test_y_pred)
-        #     if valid_mask.mean() == 0:
-        #         data.append((None, None, None))
-        #         continue
-        #     score = metrics.roc_curve(y_true=model.test_y[valid_mask], y_score=model.test_y_pred[valid_mask])
-        #     data.append(score)
         if not gca:
             gca = plt.figure(figsize=(10, 10)).gca()
         # roc_auc = metrics.auc(fpr, tpr)
