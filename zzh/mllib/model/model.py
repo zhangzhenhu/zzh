@@ -91,7 +91,7 @@ class ABCModel(abc.ABC):
         raise NotImplemented
 
     def test(self, dataset, **options):
-        self.testset = dataset
+        self.testset = dataset.copy()
         self.testset.predict = self.predict(dataset.x)
 
     def predict(self, x, **options):
