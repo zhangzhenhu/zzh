@@ -253,6 +253,7 @@ class EvaluationPool(List):
                     'f1',
                     'tpr',
                     'fpr',
+                    'gini_norm',
                     ]
         return df[cols]
 
