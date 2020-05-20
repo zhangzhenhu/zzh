@@ -17,17 +17,17 @@ from math import ceil
 from IPython.display import display
 from zzh.mllib.feature.dataset import DataSet
 
-params = {'font.family': 'serif',
-          'font.serif': 'SimHei',
-          'font.style': 'italic',
-          'font.weight': 'normal',  # or 'blod'
-          'font.size': 'medium',  # or large,small
-          'axes.unicode_minus': False
-          }
-plt.rcParams.update(params)
-# plt.rcParams['font.family'] = ['sans-serif']  # 用来正常显示中文标签
-# plt.rcParams['font.sans-serif'] = ['Tahoma']  # 用来正常显示中文标签
-# plt.rcParams['axes.unicode_minus'] = False  # 用来正常显示负号
+# params = {'font.family': 'serif',
+#           'font.serif': 'SimHei',
+#           'font.style': 'italic',
+#           # 'font.weight': 'normal',  # or 'blod'
+#           # 'font.size': 'medium',  # or large,small
+#           'axes.unicode_minus': False
+#           }
+# plt.rcParams.update(params)
+plt.rcParams['font.family'] = ['sans-serif']  # 用来正常显示中文标签
+plt.rcParams['font.sans-serif'] = ['SimHei']  # 用来正常显示中文标签
+plt.rcParams['axes.unicode_minus'] = False  # 用来正常显示负号
 
 
 def gini(actual, pred):
