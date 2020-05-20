@@ -18,7 +18,7 @@ from IPython.display import display
 from zzh.mllib.feature.dataset import DataSet
 
 params = {'font.family': 'serif',
-          'font.serif': 'Times New Roman',
+          'font.serif': 'SimHei',
           'font.style': 'italic',
           'font.weight': 'normal',  # or 'blod'
           'font.size': 'medium',  # or large,small
