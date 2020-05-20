@@ -18,6 +18,21 @@ from IPython.display import display
 from zzh.mllib.feature.dataset import DataSet
 
 
+def gini(actual, pred):
+    assert (len(actual) == len(pred))
+    all = np.asarray(np.c_[actual, pred, np.arange(len(actual))], dtype=np.float)
+    all = all[np.lexsort((all[:, 2], -1 * all[:, 1]))]
+    totalLosses = all[:, 0].sum()
+    giniSum = all[:, 0].cumsum().sum() / totalLosses
+
+    giniSum -= (len(actual) + 1) / 2.
+    return giniSum / len(actual)
+
+
+def gini_normalized(actual, pred):
+    return gini(actual, pred) / gini(actual, actual)
+
+
 def accuracy_error(y_true, y_pred):
     return abs(y_true.mean() - y_pred.mean())
 
@@ -159,7 +174,7 @@ class Evaluation:
             mc['auc'] = 0
 
         mc['f1'] = metrics.f1_score(y_true, y_label)
-
+        mc['gini_norm'] = gini_normalized(y_true, y_pred)
         return mc
 
     def print_evaluate(self):
