@@ -29,7 +29,7 @@ NAME = "zzh"
 PACKAGES = [NAME] + ["%s.%s" % (NAME, i) for i in find_packages(NAME)]
 # PACKAGES = []
 extensions = [
-    Pybind11Extension(name="fastlib",
+    Pybind11Extension(name="zzh.fastlib",
                       sources=[os.path.join(cur_path, "src", "fastlib", "bind.cpp")],
                       # Example: passing in the version to the compiled code
                       define_macros=[('VERSION_INFO', __version__)],
@@ -59,4 +59,5 @@ setup(
     author='zhangzhenhu',
     author_email='acmtiger@gmail.com',
     zip_safe=False,
+    cmdclass={"build_ext": build_ext},
 )

@@ -251,7 +251,8 @@ py::tuple lcx_ex(std::vector<int> &_short, std::vector<int> &_long) {
 
     auto short_v = std::vector<size_t>(n_match);
     auto long_v = std::vector<size_t>(n_match);
-    std::wstring match;
+    auto match = std::vector<int>(0);
+
 
     for (; k >= 0 & i > 0 & j > 0;) {
         // 当前位置来自左上，也即是当前位置是相同的
@@ -274,7 +275,7 @@ py::tuple lcx_ex(std::vector<int> &_short, std::vector<int> &_long) {
     free2D<size_t>(cache, 2);
     free2D<char>(position, row_len);
     for (auto c:short_v) {
-        match += _short[c];
+        match.push_back(_short[c]);
     }
     return py::make_tuple(n_match, match, short_v, long_v);
 
