@@ -7,12 +7,12 @@
 from setuptools import find_packages
 from distutils.core import setup
 # from Cython.Build import cythonize
-from distutils.extension import Extension
+# from distutils.extension import Extension
 from pybind11.setup_helpers import Pybind11Extension, build_ext
 # from Cython.Distutils import Extension
 # from Cython.Distutils import build_ext
 import numpy.distutils.misc_util
-# import cython_gsl
+
 import os
 
 cur_path = os.path.dirname(__file__)
