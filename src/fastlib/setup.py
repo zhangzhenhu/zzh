@@ -3,6 +3,7 @@ from setuptools import setup
 from distutils.extension import Extension
 from pybind11.setup_helpers import Pybind11Extension, build_ext
 from pybind11 import get_cmake_dir
+from glob import glob
 import os
 
 cur_path = os.path.dirname(__file__)
@@ -11,7 +12,7 @@ __version__ = "0.0.1"
 
 extensions = [
     Pybind11Extension(name="fastlib",
-                      sources=[os.path.join(cur_path, "bind.cpp")],
+                      sources=sorted(glob(os.path.join(cur_path,"*.cpp"))),
                       # Example: passing in the version to the compiled code
                       define_macros=[('VERSION_INFO', __version__)],
                       ),

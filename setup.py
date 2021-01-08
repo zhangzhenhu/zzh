@@ -12,7 +12,7 @@ from pybind11.setup_helpers import Pybind11Extension, build_ext
 # from Cython.Distutils import Extension
 # from Cython.Distutils import build_ext
 import numpy.distutils.misc_util
-
+from glob import glob
 import os
 
 cur_path = os.path.dirname(__file__)
@@ -30,7 +30,7 @@ PACKAGES = [NAME] + ["%s.%s" % (NAME, i) for i in find_packages(NAME)]
 # PACKAGES = []
 extensions = [
     Pybind11Extension(name="zzh.fastlib",
-                      sources=[os.path.join(cur_path, "src", "fastlib", "bind.cpp")],
+                      sources=sorted(glob(os.path.join(cur_path, "src", "fastlib", "*.cpp"))),
                       # Example: passing in the version to the compiled code
                       define_macros=[('VERSION_INFO', __version__)],
                       ),
