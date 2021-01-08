@@ -11,9 +11,6 @@ from feature.core.spark_con import AbstrctSpark, AbstrctHive, get_spark, get_hiv
 import os
 import pandas as pd
 
-__version__ = 1.0
-# os.environ['PYTHON_HOME'] = "./python/bin/python3"
-# os.environ['LD_LIBRARY_PATH'] += ':./python/lib/'
 
 table_dict = {
     "cur_student_class_detail": "当期学生-班级维度明细",
