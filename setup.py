@@ -47,7 +47,7 @@ setup(
     # cmdclass={'build_ext': build_ext},
     ext_modules=extensions,
     install_requires=["Cython"],
-    setup_requires=["Cython", ],
+    setup_requires=["pybind11", ],
     include_dirs=include_dirs,
     packages=PACKAGES,
     version=__version__,  # ''版本号, 通常在 name.__init__.py 中以 __version__ = "0.0.1" 的形式被定义',
