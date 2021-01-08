@@ -17,7 +17,7 @@ PYBIND11_MODULE(fastlib, m) {
     m.doc() = R"pbdoc(
         C++实现的高性能算法包，包含一些需要的算法。
         -----------------------
-        .. currentmodule:: python_example
+        .. currentmodule:: fastlib
         .. autosummary::
            :toctree: _generate
            lcs 最大公共子串
