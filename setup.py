@@ -46,7 +46,7 @@ setup(
     name=NAME,
     # cmdclass={'build_ext': build_ext},
     ext_modules=extensions,
-    install_requires=["Cython"],
+    install_requires=["pybind11"],
     setup_requires=["pybind11", ],
     include_dirs=include_dirs,
     packages=PACKAGES,
