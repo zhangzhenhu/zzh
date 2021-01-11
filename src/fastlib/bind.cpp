@@ -3,14 +3,17 @@
 //
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+#include <pybind11/stl_bind.h>
 #include "lcs.hpp"
+#include "ZTrie.h"
 
 namespace py = pybind11;
 
 
-template <typename... Args>
-using overload_cast_ = py::detail::overload_cast_impl<Args...>;
+PYBIND11_MAKE_OPAQUE(std::map<wchar_t, ZTrie *>);
 
+template<typename... Args>
+using overload_cast_ = py::detail::overload_cast_impl<Args...>;
 
 
 PYBIND11_MODULE(fastlib, m) {
@@ -101,6 +104,72 @@ PYBIND11_MODULE(fastlib, m) {
     :return: tuple("公共子串",在短串的开始位置,长度)
 
     )pbdoc", py::arg("short").none(true), py::arg("long").none(true));
+
+    using ChildrenMap = std::map<wchar_t, ZTrie *>;
+
+    py::bind_map<ChildrenMap>(m, "ChildrenMap")
+            .def("__str__", [](std::map<wchar_t, ZTrie *> &m) {
+                std::wstringstream s;
+                s << L"ChildrenMap" << L'{';
+                bool f = false;
+                for (auto const &kv : m) {
+                    if (f)
+                        s << L", ";
+                    s << kv.first << L": " << std::to_wstring(kv.second->children.size());
+                    f = true;
+                }
+                s << L'}';
+                return s.str();
+            })
+            .def("size", &ChildrenMap::size)
+            .def("keys",
+                 [](ChildrenMap &m) { return py::make_key_iterator(m.begin(), m.end()); },
+                 py::keep_alive<0, 1>() /* Essential: keep list alive while iterator exists */
+            )
+            .def("clear",
+                 [](ChildrenMap &m) {
+                     for (auto i:m) { delete i.second; }
+                     m.clear();
+                 },
+                 py::keep_alive<0, 1>() /* Essential: keep list alive while iterator exists */
+            ).def("get",
+                  [](ChildrenMap &m, const wchar_t &k) -> ZTrie *& {
+                      auto it = m.find(k);
+                      if (it == m.end())
+                          throw py::key_error();
+                      return it->second;
+                  },
+                  py::return_value_policy::reference_internal // ref + keepalive
+            );
+
+
+    pybind11::class_<ZTrie>(m, "ZTrie")
+            .def(py::init<std::wstring, unsigned long, bool>(),
+                 py::arg("name") = L"",
+                 py::arg("counter") = 1,
+                 py::arg("end") = false
+            )
+            .def("__str__", &ZTrie::toString)
+            .def("__repr__", &ZTrie::toString)
+            .def("insert", &ZTrie::insert)
+            .def("search", &ZTrie::search)
+            .def("subtree", &ZTrie::subtree, py::return_value_policy::reference)
+            .def("size", &ZTrie::size)
+            .def("__iter__", &ZTrie::iter,
+                 py::keep_alive<0, 1>() /* Essential: keep list alive while iterator exists */)
+            .def("asDict", &ZTrie::asDict, py::arg("recursion")= false)
+//            .def("iter_children", &ZTrie::iter_children)
+            .def_readwrite("end", &ZTrie::end)
+            .def_property("name", &ZTrie::getName, &ZTrie::setName)
+//            .def_property("value", &Node::getValue, &Node::setValue)
+            .def_readonly("children", &ZTrie::children, py::return_value_policy::reference);
+//            .def_property_readonly("__dict__", &ZTrie::asDict);
+
+
+//    pybind11::class_<ZTrie>(m, "ZTrie")
+//            .def(py::init<>())
+//            .def("add_word", &ZTrie::add_word)
+//            .def("get", &ZTrie::get, py::return_value_policy::copy);
 
 #ifdef VERSION_INFO
     m.attr("__version__") = MACRO_STRINGIFY(VERSION_INFO);
