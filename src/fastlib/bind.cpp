@@ -10,7 +10,7 @@
 namespace py = pybind11;
 
 
-PYBIND11_MAKE_OPAQUE(std::map<wchar_t, ZTrie *>);
+PYBIND11_MAKE_OPAQUE(ChildrenMap);
 
 template<typename... Args>
 using overload_cast_ = py::detail::overload_cast_impl<Args...>;
@@ -105,17 +105,17 @@ PYBIND11_MODULE(fastlib, m) {
 
     )pbdoc", py::arg("short").none(true), py::arg("long").none(true));
 
-    using ChildrenMap = std::map<wchar_t, ZTrie *>;
+//    using ChildrenMap = std::map<wchar_t, ZTrie *>;
 
-    py::bind_map<ChildrenMap>(m, "ChildrenMap")
-            .def("__str__", [](std::map<wchar_t, ZTrie *> &m) {
+    py::bind_map<ChildrenMap >(m, "ChildrenMap")
+            .def("__str__", [](ChildrenMap &m) {
                 std::wstringstream s;
                 s << L"ChildrenMap" << L'{';
                 bool f = false;
                 for (auto const &kv : m) {
                     if (f)
                         s << L", ";
-                    s << kv.first << L": " << std::to_wstring(kv.second->children.size());
+                    s << kv.first << L": " << std::to_wstring(kv.second->_children.size());
                     f = true;
                 }
                 s << L'}';
@@ -133,7 +133,7 @@ PYBIND11_MODULE(fastlib, m) {
                  },
                  py::keep_alive<0, 1>() /* Essential: keep list alive while iterator exists */
             ).def("get",
-                  [](ChildrenMap &m, const wchar_t &k) -> ZTrie *& {
+                  [](ChildrenMap &m, const std::wstring &k) -> ZTrie *& {
                       auto it = m.find(k);
                       if (it == m.end())
                           throw py::key_error();
@@ -155,15 +155,24 @@ PYBIND11_MODULE(fastlib, m) {
             .def("search", &ZTrie::search)
             .def("subtree", &ZTrie::subtree, py::return_value_policy::reference)
             .def("size", &ZTrie::size)
-            .def("__iter__", &ZTrie::iter,
-                 py::keep_alive<0, 1>() /* Essential: keep list alive while iterator exists */)
-            .def("asDict", &ZTrie::asDict, py::arg("recursion")= false)
-//            .def("iter_children", &ZTrie::iter_children)
-            .def_readwrite("end", &ZTrie::end)
-            .def_property("name", &ZTrie::getName, &ZTrie::setName)
-//            .def_property("value", &Node::getValue, &Node::setValue)
-            .def_readonly("children", &ZTrie::children, py::return_value_policy::reference);
-//            .def_property_readonly("__dict__", &ZTrie::asDict);
+            .def("__iter__", &ZTrie::iter)
+//                 py::keep_alive<0, 1>() /* Essential: keep list alive while iterator exists */)
+            .def("asDict", &ZTrie::asDict, py::arg("recursion") = false)
+            .def("save", &ZTrie::save,
+                 py::arg("filename"),
+                 py::arg("sep") = " ")
+            .def("load", &ZTrie::load,
+                 py::arg("filename").none(false),
+                 py::arg("sep") = " ")
+            .def("merge", &ZTrie::merge,
+                 py::arg("other").none(false))
+            .def("equal", &ZTrie::equal,
+                 py::arg("other").none(false),
+                 py::arg("name") = true,
+                 py::arg("counter") = true)
+            .def_readwrite("end", &ZTrie::_end)
+            .def_readwrite("name", &ZTrie::_name)
+            .def_readonly("children", &ZTrie::_children, py::return_value_policy::reference);
 
 
 //    pybind11::class_<ZTrie>(m, "ZTrie")
