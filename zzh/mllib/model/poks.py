@@ -12,7 +12,7 @@ Date:    2018/8/20 17:20
 import xgboost as xgb
 import argparse
 import numpy as np
-from .model import Model
+from .model import ABCModel as Model
 import pandas as pd
 import sys
 from scipy.stats import binom

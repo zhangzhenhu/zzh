@@ -22,7 +22,6 @@ from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 import matplotlib.pyplot as plt
 import os
 from zzh.mllib.model import ABCModel
-from zzh.mllib.feature import DataSet
 
 
 
@@ -42,7 +41,7 @@ class Xgboost(ABCModel):
     # min_child_weight:, max_depth:, gamma:,
     description = "xgboost"
 
-    def _fit(self, dataset: DataSet, **options):
+    def _fit(self, dataset, **options):
         # self.param = param
         # params = {'max_depth': range(2, 6, 1)}
         # params = {'min_child_weight': range(1, 6, 1)}
@@ -90,7 +89,7 @@ class GradientBoostingTree(ABCModel):
 
     description = "GBDT"
 
-    def _fit(self, dataset: DataSet, **options):
+    def _fit(self, dataset, **options):
         self.m = GradientBoostingClassifier(**self.model_params)
         self.m.fit(dataset.x, dataset.y)
 
@@ -123,7 +122,7 @@ class GBDTLR(ABCModel):
 
     description = "GBDT_LR"
 
-    def _fit(self, dataset: DataSet, **options):
+    def _fit(self, dataset, **options):
         # self.param = param
         # print('model GBDT_LR fit begin:')
         # GBDT 模型
@@ -158,7 +157,7 @@ class RFLR(ABCModel):
 
     description = "RF_LR"
 
-    def _fit(self, dataset: DataSet, **options):
+    def _fit(self, dataset, **options):
         # self.param = param
         # print('model GBDT_LR fit begin:')
         # GBDT 模型
@@ -192,7 +191,7 @@ class RandomForest(ABCModel):
 
     description = "RF"
 
-    def _fit(self, dataset: DataSet, **options):
+    def _fit(self, dataset, **options):
         # self.param = param
         # params = {'max_depth': range(2, 6, 1)}
         # params = {'min_child_weight': range(1, 6, 1)}

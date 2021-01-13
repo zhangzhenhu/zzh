@@ -62,7 +62,7 @@ private:
                 return py::make_tuple();
             }
             Node n = stack.top();
-            return py::make_tuple(n.prefix, n.tree->_end, n.tree->_counter);
+            return py::make_tuple(n.prefix, n.tree->_counter, n.tree->_end);
         }
 
         Node operator->() {
@@ -175,9 +175,9 @@ public:
 
     ZTrie *copy();
 
-    ZTrie *insert(const std::wstring &word);
+    ZTrie *add(const std::wstring &word);
 
-    ZTrie *add(const std::wstring &word, size_t counter = 1, bool end = true);
+    ZTrie *insert(const std::wstring &word, size_t counter = 1, bool end = true);
 
     ZTrie *subtree(const wstring &word);
 
@@ -189,11 +189,11 @@ public:
 
     bool empty() const { return this->_children.empty(); };
 
-    ZTrie *save(const string &filename,const string &separator = " ");
+    ZTrie *save(const string &filename, const string &separator = " ");
 
-    ZTrie *load(const string &filename, const string &separator = " ");
+    ZTrie *load(const string &filename, const wstring &separator = L" ");
 
-    bool equal(ZTrie *other, bool name = true, bool counter = true);
+    bool equal(ZTrie *other, bool name = true, bool counter = true,bool end=true);
 };
 
 #endif //FASTLIB_ZTRIE_H

@@ -18,19 +18,6 @@ std::wstring bool2str(bool v) {
     }
 }
 
-void split(const std::string &s, std::vector<std::string> &v, const std::string &c) {
-    std::string::size_type pos1, pos2;
-    pos2 = s.find(c);
-    pos1 = 0;
-    while (std::string::npos != pos2) {
-        v.push_back(s.substr(pos1, pos2 - pos1));
-
-        pos1 = pos2 + c.size();
-        pos2 = s.find(c, pos1);
-    }
-    if (pos1 != s.length())
-        v.push_back(s.substr(pos1));
-}
 
 std::string ws2s_(const std::wstring &wstr) {
     using convert_typeX = std::codecvt_utf8<wchar_t>;
@@ -64,6 +51,21 @@ std::wstring strtowstr(const std::string &str) {
     return wstr;
 }
 
+void split(const std::wstring &wstr, std::vector<std::wstring> &v, const std::wstring &c) {
+    std::wstring::size_type pos1, pos2;
+    pos2 = wstr.find(c);
+    pos1 = 0;
+//    std::cerr << ws2s(wstr) << "|" << ws2s(c) << "|" << endl;
+    while (std::wstring::npos != pos2) {
+        v.push_back(wstr.substr(pos1, pos2 - pos1));
+//        std::cerr << pos1 << "|" << pos2 << "|" << ws2s(wstr.substr(pos1, pos2 - pos1)) << endl;
+        pos1 = pos2 + c.size();
+        pos2 = wstr.find(c, pos1);
+    }
+    if (pos1 != wstr.length())
+        v.push_back(wstr.substr(pos1));
+}
+
 ZTrie::ZTrie(std::wstring
              name, unsigned long
              counter, bool
@@ -89,7 +91,7 @@ std::wstring ZTrie::toString() {
            + L"}";
 }
 
-ZTrie *ZTrie::insert(const std::wstring &word) {
+ZTrie *ZTrie::add(const std::wstring &word) {
     if (word.empty()) {
         return this;
     }
@@ -117,7 +119,7 @@ ZTrie *ZTrie::insert(const std::wstring &word) {
     return this;
 }
 
-ZTrie *ZTrie::add(const std::wstring &word, size_t count, bool end) {
+ZTrie *ZTrie::insert(const std::wstring &word, size_t count, bool end) {
 
     ZTrie *cur_ptr = this;
     ZTrie *t = nullptr;
@@ -239,11 +241,14 @@ ZTrie *ZTrie::merge(ZTrie *other) {
     return this;
 }
 
-bool ZTrie::equal(ZTrie *other, bool name, bool counter) {
+bool ZTrie::equal(ZTrie *other, bool name, bool counter, bool end) {
     if (name && this->_name != other->_name) {
         return false;
     }
     if (counter && this->_counter != other->_counter) {
+        return false;
+    }
+    if (end && this->_end != other->_end) {
         return false;
     }
     if (this->_children.size() != other->_children.size()) {
@@ -290,21 +295,26 @@ ZTrie *ZTrie::save(const string &filename, const string &separator) {
     return this;
 }
 
-ZTrie *ZTrie::load(const string &filename, const string &separator) {
+ZTrie *ZTrie::load(const string &filename, const wstring &separator) {
     std::ifstream fin(filename);
     if (!fin.is_open()) {
         return this;
     }
     string line;
-    std::vector<string> v(3);
+//    size_t cc=0;
+    std::vector<wstring> v;
     while (getline(fin, line)) {
 
-        split(line, v, separator);
-        if (v.size() != 3) {
-            cerr << "Invalid data " << line << endl;
+        split(strtowstr(line), v, separator);
+        if (v.size() < 3) {
+            cerr << "Invalid data,skip this line. >>" << line << endl;
+//            cc +=1;
             continue;
         };
-        this->add(strtowstr(v[0]), std::stoul(v[1]), std::stoi(v[3]));
+//        if(cc>100){
+//            cerr << "Too many invalid data."  << endl;
+//        }
+        this->insert(v[0], std::stoul(v[1]), std::stoi(v[2]));
         v.clear();
     }
     return this;

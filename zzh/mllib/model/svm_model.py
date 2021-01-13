@@ -18,7 +18,7 @@ from sklearn import preprocessing
 from sklearn.svm import SVC
 from sklearn.svm import SVR
 from sklearn.model_selection import GridSearchCV
-from .model import Model, Evaluation
+from .model import ABCModel as Model, Evaluation
 from sklearn.decomposition import PCA
 from sklearn.feature_selection import SelectKBest
 from sklearn.pipeline import Pipeline, FeatureUnion

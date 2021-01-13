@@ -16,7 +16,7 @@ import abc
 import joblib
 import matplotlib.pyplot as plt
 
-from zzh.mllib.feature import DataSet
+# from zzh.mllib.feature import DataSet
 # from IPython.display import display
 from zzh.mllib.evaluation import Evaluation
 
@@ -74,14 +74,14 @@ class ABCModel(abc.ABC):
         df_y = [df_y[i] for i in range(len(df_y)) if i not in se_1_sub]
         return df_x, df_y
 
-    def fit(self, dataset: DataSet, **options):
+    def fit(self, dataset, **options):
         self.trainset = dataset.copy()
         self._fit(self.trainset, **options)
         self.trainset.predict = self.predict(self.trainset.x)
         return self
 
     @abc.abstractmethod
-    def _fit(self, dataset: DataSet, **options):
+    def _fit(self, dataset, **options):
         """
 
         :param dataset:
