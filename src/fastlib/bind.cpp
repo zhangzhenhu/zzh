@@ -30,7 +30,7 @@ PYBIND11_MODULE(fastlib, m) {
     )pbdoc";
 
     m.def("lcx", overload_cast_<const wstring &, const wstring &>()(&lcx), R"pbdoc(
-    最大公共子序列。仅返回长度，如果需要公共序列内容或者位置请使用 :function:`lcx_ex` 。
+    最大公共子序列。仅返回长度，如果需要公共序列内容或者位置请使用 ``lcx_ex`` 。
     第一个参数是较短的序列，第二个参数是较长的序列。
     算法不会自动区分长短串，需要使用者自行区分，并传入对应参数。
     如果长短传入错误，算法也能正常执行，只是效率会变差并且消耗更多内存。
@@ -43,7 +43,7 @@ PYBIND11_MODULE(fastlib, m) {
     )pbdoc", py::arg("short").none(true), py::arg("long").none(true));
 
     m.def("lcx", overload_cast_<std::vector<int> &, std::vector<int> &>()(&lcx), R"pbdoc(
-    最大公共子序列。仅返回长度，如果需要公共序列内容或者位置请使用 :function:`lcx_ex` 。
+    最大公共子序列。仅返回长度，如果需要公共序列内容或者位置请使用 ``lcx_ex`` 。
     第一个参数是较短的序列，第二个参数是较长的序列。
     算法不会自动区分长短串，需要使用者自行区分，并传入对应参数。
     如果长短传入错误，算法也能正常执行，只是效率会变差并且消耗更多内存。
@@ -57,7 +57,7 @@ PYBIND11_MODULE(fastlib, m) {
 
     m.def("lcx_ex", overload_cast_<const wstring &, const wstring &>()(&lcx_ex), R"pbdoc(
     最大公共子序列，本函数返回最大公共子序列的长度、内容、位置。
-    如果仅需要长度，不需要内容和位置，请使用 :function:`lcx` ，:function:`lcx` 性能会更好。
+    如果仅需要长度，不需要内容和位置，请使用 ``lcx`` ，``lcx`` 性能会更好。
     第一个参数是较短的序列，第二个参数是较长的序列。
     算法不会自动区分长短串，需要使用者自行区分，并传入对应参数。
     如果长短传入错误，算法也能正常执行，只是效率会变差并且消耗更多内存。
@@ -71,7 +71,7 @@ PYBIND11_MODULE(fastlib, m) {
 
     m.def("lcx_ex", overload_cast_<std::vector<int> &, std::vector<int> &>()(&lcx_ex), R"pbdoc(
     最大公共子序列，本函数返回最大公共子序列的长度、内容、位置。
-    如果仅需要长度，不需要内容和位置，请使用 :function:`lcx` ，:function:`lcx` 性能会更好。
+    如果仅需要长度，不需要内容和位置，请使用 ``lcx`` ，``lcx`` 性能会更好。
     第一个参数是较短的序列，第二个参数是较长的序列。
     算法不会自动区分长短串，需要使用者自行区分，并传入对应参数。
     如果长短传入错误，算法也能正常执行，只是效率会变差并且消耗更多内存。

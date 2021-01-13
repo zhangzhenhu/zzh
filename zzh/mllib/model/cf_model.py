@@ -1,15 +1,15 @@
 import argparse
 import numpy as np
 import pandas as pd
-from .model import Model, Feature, Evaluation
+from .model import ABCModel, Evaluation
 
 
-class CF(Model):
+class CF(ABCModel):
     name = "cf_model"
     # 模型参数
     description = "cf_model"
 
-    def __init__(self, feature: Feature, evaluation: Evaluation = None, kind='user_base'):
+    def __init__(self, feature, evaluation: Evaluation = None, kind='user_base'):
         super(CF, self).__init__(feature=feature, evaluation=evaluation)
         self.kind = kind
         self.description = kind
