@@ -40,7 +40,7 @@ PYBIND11_MODULE(fastlib, m) {
     :param long: 较长的串
     :return: 最大公共子序列的长度
 
-    )pbdoc", py::arg("short").none(true), py::arg("long").none(true));
+    )pbdoc", py::arg("short").none(false), py::arg("long").none(false));
 
     m.def("lcx", overload_cast_<std::vector<int> &, std::vector<int> &>()(&lcx), R"pbdoc(
     最大公共子序列。仅返回长度，如果需要公共序列内容或者位置请使用 ``lcx_ex`` 。
@@ -52,7 +52,7 @@ PYBIND11_MODULE(fastlib, m) {
     :param long: 较长的串
     :return: 最大公共子序列的长度
 
-    )pbdoc", py::arg("short").none(true), py::arg("long").none(true));
+    )pbdoc", py::arg("short").none(false), py::arg("long").none(false));
 
 
     m.def("lcx_ex", overload_cast_<const wstring &, const wstring &>()(&lcx_ex), R"pbdoc(
@@ -66,7 +66,7 @@ PYBIND11_MODULE(fastlib, m) {
     :param long: 较长的串
     :return: tuple(最大公共子序列的长度，内容，位置)
 
-    )pbdoc", py::arg("short").none(true), py::arg("long").none(true));
+    )pbdoc", py::arg("short").none(false), py::arg("long").none(false));
 
 
     m.def("lcx_ex", overload_cast_<std::vector<int> &, std::vector<int> &>()(&lcx_ex), R"pbdoc(
@@ -81,7 +81,7 @@ PYBIND11_MODULE(fastlib, m) {
     :param long: 较长的串
     :return: tuple(最大公共子序列的长度，内容，位置)
 
-    )pbdoc", py::arg("short").none(true), py::arg("long").none(true));
+    )pbdoc", py::arg("short").none(false), py::arg("long").none(false));
 
 
     m.def("lcs", overload_cast_<const wstring &, const wstring &>()(&lcs), R"pbdoc(
@@ -94,7 +94,7 @@ PYBIND11_MODULE(fastlib, m) {
     :param long: 较长的串
     :return: tuple("公共子串",在短串的开始位置,长度)
 
-    )pbdoc", py::arg("short").none(true), py::arg("long").none(true));
+    )pbdoc", py::arg("short").none(false), py::arg("long").none(false));
 
     m.def("lcs", overload_cast_<std::vector<int> &, std::vector<int> &>()(&lcs), R"pbdoc(
     最大公共子串。
@@ -109,7 +109,7 @@ PYBIND11_MODULE(fastlib, m) {
     :return: tuple("公共子串",在短串的开始位置,长度)
     :rtype: tuple
 
-    )pbdoc", py::arg("short").none(true), py::arg("long").none(true));
+    )pbdoc", py::arg("short").none(false), py::arg("long").none(false));
 
     // 绑定 ChildrenMap
     auto cm = py::bind_map<ChildrenMap >(m, "ChildrenMap",
@@ -177,14 +177,28 @@ PYBIND11_MODULE(fastlib, m) {
                                      R"pbdoc(
     C++ 实现的前缀树结构。
     )pbdoc");
+
     z.def(py::init<std::wstring, unsigned long, bool>(),
           py::arg("name") = L"",
           py::arg("counter") = 1,
-          py::arg("end") = false
-            )
-            .def("__str__", &ZTrie::toString)
-            .def("__repr__", &ZTrie::toString)
-            .def("add", &ZTrie::add, R"pbdoc(
+          py::arg("end") = false,
+          R"pbdoc(
+    构造函数。
+
+    :param name: 根节点的name，默认空串。
+    :param counter: 根节点的计数器，默认为1。
+    :param end: 根节点的end标记，默认为False。
+
+    )pbdoc");
+//    .def(py::self + py::self);
+
+//    z.def(py::self == py::self);
+
+    z.def("__str__", &ZTrie::toString);
+    z.def("__repr__", &ZTrie::toString);
+
+    z.def("add", &ZTrie::add, py::arg("word"),
+          R"pbdoc(
     往当前树中增加一个（前缀）词。
     路径中所有节点的 counter 都会加1，最后的尾节点的 end 标记为True。
 
@@ -195,9 +209,9 @@ PYBIND11_MODULE(fastlib, m) {
     )pbdoc");
     z.def("insert", &ZTrie::insert, R"pbdoc(
     直接插入一个尾部节点。
-    如果某个前缀节点已经存在，此前缀几点的counter不会累加，end标记不会变动；
+    如果某个前缀节点已经存在，此前缀节点的counter不会累加，end标记不会变动；
     如果某个前缀结点不存在，新增此前缀节点，并且其counter=1，end=False。
-    最后的尾部节点，
+    最后的尾部节点：
     如果尾部节点已经存在，其 counter 累加上入参的counter，end标记赋值为入参的值。
     如果尾部节点不存在，其counter和end分别是入参的值。
 
@@ -211,13 +225,18 @@ PYBIND11_MODULE(fastlib, m) {
              )pbdoc", py::arg("word"),
           py::arg("counter") = 1,
           py::arg("end") = true);
+
     z.def("search", &ZTrie::search,
           py::arg("prefix"),
           R"pbdoc(
     查询一个前缀
 
+    :param prefix: 前缀词
+    :return: 若存在返回 tuple(end,counter);若不存在，返回 None。
+    :rtype: tuple, None
 
     )pbdoc");
+
     z.def("subtree", &ZTrie::subtree,
           py::arg("prefix"),
           py::return_value_policy::reference,
@@ -227,25 +246,39 @@ PYBIND11_MODULE(fastlib, m) {
     :param prefix: 前缀
 
     :return: 子树
-             )pbdoc");
+    )pbdoc");
+
+    z.def("copy", &ZTrie::copy,
+          R"pbdoc(
+    深度复制一份。
+
+    :return: 副本。
+
+    )pbdoc");
+
     z.def("size", &ZTrie::size,
           R"pbdoc(
     返回树中节点的数量，包括根节点。
             )pbdoc");
     z.def("__iter__", &ZTrie::iter);
 //                 py::keep_alive<0, 1>() /* Essential: keep list alive while iterator exists */)
+
     z.def("to_dict", &ZTrie::asDict,
-          py::arg("recursion") = false,
+          py::arg("recursion") = true,
           R"pbdoc(
     把 ``ZTrie`` 转换成 Python 中的 ``Dict`` 结构。
     注意，对于超大规模的树转换的性能是比较差的。
 
-    :param recursion: 是否递归子节点。默认为 False。
+    :param recursion: 是否递归子节点。默认为 True。
+    :return:
+    :rtype: Dict
 
     )pbdoc");
+
     z.def("save", &ZTrie::save,
           py::arg("filename"),
-          py::arg("sep") = " ", R"pbdoc(
+          py::arg("sep") = " ",
+          R"pbdoc(
     把树保存到csv文件中。
 
     :param filename: 文件路径
@@ -263,6 +296,7 @@ PYBIND11_MODULE(fastlib, m) {
     :param sep: 分割符，默认空格
     :return: self
     )pbdoc");
+
     z.def("merge", &ZTrie::merge,
           py::arg("other").none(false),
           R"pbdoc(
@@ -272,6 +306,7 @@ PYBIND11_MODULE(fastlib, m) {
     :param other: 另外的 ZTrie 对象
     :return: self
     )pbdoc");
+
     z.def("equal", &ZTrie::equal,
           py::arg("other").none(false),
           py::arg("name") = true,

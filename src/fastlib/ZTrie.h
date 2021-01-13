@@ -181,7 +181,7 @@ public:
 
     ZTrie *subtree(const wstring &word);
 
-    py::tuple search(const wstring &prefix);
+    py::object search(const wstring &prefix);
 
     ZTrie *clear();
 
@@ -193,7 +193,9 @@ public:
 
     ZTrie *load(const string &filename, const wstring &separator = L" ");
 
-    bool equal(ZTrie *other, bool name = true, bool counter = true,bool end=true);
+    bool equal(ZTrie *other, bool name = true, bool counter = true, bool end = true);
+
+    bool operator==(ZTrie *other) { return this->equal(other); };
 };
 
 #endif //FASTLIB_ZTRIE_H

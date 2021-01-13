@@ -135,7 +135,7 @@ ZTrie *ZTrie::insert(const std::wstring &word, size_t count, bool end) {
 
         } else {
             // not found
-            t = new ZTrie(key, 0, false);
+            t = new ZTrie(key, 1, false);
             cur_ptr->_children[key] = t;
             cur_ptr = t;
         }
@@ -181,13 +181,14 @@ ZTrie *ZTrie::subtree(const std::wstring &word) {
     return cur_ptr;
 }
 
-py::tuple ZTrie::search(const std::wstring &prefix) {
+py::object ZTrie::search(const std::wstring &prefix) {
 
     ZTrie *sub = this->subtree(prefix);
     if (sub != nullptr) {
         return py::make_tuple(sub->_end, sub->_counter);
     }
-    return py::make_tuple(false, 0);
+//    return py::make_tuple(false, 0);
+    return py::none();
 }
 
 py::dict ZTrie::asDict(bool recursion) {

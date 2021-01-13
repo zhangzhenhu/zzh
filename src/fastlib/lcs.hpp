@@ -43,7 +43,7 @@ py::tuple lcs(std::vector<int> &_short, std::vector<int> &_long) {
                 if (cur[j + 1] > max) {
 
                     max = cur[j + 1];
-                    pos = j + 1;
+                    pos = j;
                 }
             } else {
 
@@ -53,7 +53,13 @@ py::tuple lcs(std::vector<int> &_short, std::vector<int> &_long) {
     };
     free(cur);
     free(pre);
-    return py::make_tuple(max, std::vector<int>(_short.begin() + pos - max, _short.begin() + max), pos - max);
+    pos += 1;
+//    size_t s = pos - max + 1;
+//    size_t e = pos + 1;
+//    std::cerr << pos-max << " " << pos << " " << max << " " << *(_short.begin() + pos - max) << " "
+//              << *(_short.begin() + pos) << endl;
+
+    return py::make_tuple(max, std::vector<int>(_short.begin() + pos - max, _short.begin() + pos), pos - max);
 
 }
 
@@ -87,7 +93,7 @@ py::tuple lcs(const std::wstring &_short, const std::wstring &_long) {
                 if (cur[j + 1] > max) {
 
                     max = cur[j + 1];
-                    pos = j + 1;
+                    pos = j;
                 }
             } else {
 
@@ -97,6 +103,7 @@ py::tuple lcs(const std::wstring &_short, const std::wstring &_long) {
     };
     free(cur);
     free(pre);
+    pos += 1;
     return py::make_tuple(max, _short.substr(pos - max, max), pos - max);
 
 }
