@@ -9,5 +9,3 @@ find_package(pybind11 CONFIG REQUIRED)
 
 add_subdirectory(pybind11)
 pybind11_add_module(fastlib bind.cpp ZTrie.cpp)
-
-add_executable(main main.cpp)

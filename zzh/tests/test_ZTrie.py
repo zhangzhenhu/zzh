@@ -105,3 +105,15 @@ def test_subtree():
     assert trie.subtree("中国")
     assert trie.subtree("中国人")
     assert trie.subtree("中国话") is None
+
+
+def test_save_load():
+    import os
+    t1 = ZTrie()
+
+    t1.add("中国人")
+    t1.add("中国节")
+    t1.save("_t_.csv", sep=',')
+    t2 = ZTrie().load("_t_.csv", sep=',')
+    os.remove("_t_.csv")
+    assert t1.equal(t2)

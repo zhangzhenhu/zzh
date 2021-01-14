@@ -285,8 +285,8 @@ ZTrie *ZTrie::save(const string &filename, const string &separator) {
 
     for (; it != end; ++it) {
         auto node = it.value();
-        out << ws2s(node.prefix) << " "
-            << std::to_string(node.tree->_counter) << " "
+        out << ws2s(node.prefix) << separator
+            << std::to_string(node.tree->_counter) << separator
             << std::to_string(node.tree->_end)
             << endl;
     }
