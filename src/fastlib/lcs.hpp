@@ -261,7 +261,7 @@ py::tuple lcx_ex(std::vector<int> &_short, std::vector<int> &_long) {
     auto match = std::vector<int>(0);
 
 
-    for (; k >= 0 & i > 0 & j > 0;) {
+    for (; k >= 0 && i > 0 && j > 0;) {
         // 当前位置来自左上，也即是当前位置是相同的
         if (position[i][j] == 1) {
             long_v[k] = i - 1;
@@ -348,7 +348,7 @@ py::tuple lcx_ex(const std::wstring &_short, const std::wstring &_long) {
     auto long_v = std::vector<size_t>(n_match);
     std::wstring match;
 
-    for (; k >= 0 & i > 0 & j > 0;) {
+    for (; k >= 0 && i > 0 && j > 0;) {
         // 当前位置来自左上，也即是当前位置是相同的
         if (position[i][j] == 1) {
             long_v[k] = i - 1;

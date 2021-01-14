@@ -7,7 +7,7 @@
 #include <utility>
 #include <iostream>
 #include <fstream>
-#include <codecvt>
+//#include <codecvt>
 #include <string>
 
 
@@ -18,13 +18,13 @@ std::wstring bool2str(bool v) {
     }
 }
 
-
-std::string ws2s_(const std::wstring &wstr) {
-    using convert_typeX = std::codecvt_utf8<wchar_t>;
-    std::wstring_convert<convert_typeX, wchar_t> converterX;
-
-    return converterX.to_bytes(wstr);
-}
+// gcc 4.8.5 不支持 codecvt
+//std::string ws2s_(const std::wstring &wstr) {
+//    using convert_typeX = std::codecvt_utf8<wchar_t>;
+//    std::wstring_convert<convert_typeX, wchar_t> converterX;
+//
+//    return converterX.to_bytes(wstr);
+//}
 
 std::string ws2s(const std::wstring &w_str) {
     if (w_str.empty()) {
@@ -274,9 +274,7 @@ bool ZTrie::equal(ZTrie *other, bool name, bool counter, bool end) {
 
 ZTrie *ZTrie::save(const string &filename, const string &separator) {
 
-    std::ofstream out = std::ofstream();
-
-    out.open(filename);
+    std::ofstream out(filename);
 
     if (!out.is_open()) {
         return this;
