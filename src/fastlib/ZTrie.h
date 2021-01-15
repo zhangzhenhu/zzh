@@ -20,7 +20,18 @@ namespace py = pybind11;
 
 #define ChildrenMap std::map<std::wstring, ZTrie *>
 
+
 std::wstring bool2str(bool v);
+
+
+
+//class Node {
+//public:
+//    std::wstring prefix;
+//    const ZTrie *tree;
+//
+//    Node(std::wstring p, const ZTrie *t) : prefix(std::move(p)), tree(t) {};
+//};
 
 
 class ZTrie {
@@ -38,7 +49,6 @@ public:
 
 private:
 
-
     class Node {
     public:
         std::wstring prefix;
@@ -46,7 +56,6 @@ private:
 
         Node(std::wstring p, const ZTrie *t) : prefix(std::move(p)), tree(t) {};
     };
-
     class ZIterator {
         friend class ZTrie;
 
@@ -150,6 +159,8 @@ private:
         std::stack<Node> stack;
     };
 
+//    friend class SearchIterator;
+
 public:
     std::wstring getName() { return this->_name; };
 
@@ -175,13 +186,13 @@ public:
 
     ZTrie *copy();
 
-    ZTrie *add(const std::wstring &word);
+    ZTrie *add(const std::wstring &word, bool end = true);
 
     ZTrie *insert(const std::wstring &word, size_t counter = 1, bool end = true);
 
-    ZTrie *subtree(const wstring &word);
+    ZTrie *subtree(const wstring &prefix);
 
-    py::object search(const wstring &prefix);
+    py::object get(const wstring &prefix);
 
     ZTrie *clear();
 
@@ -196,6 +207,17 @@ public:
     bool equal(ZTrie *other, bool name = true, bool counter = true, bool end = true);
 
     bool operator==(ZTrie *other) { return this->equal(other); };
+
+    bool remove(const wstring &prefix);
+
+    ZTrie *pop(const wstring &prefix);
+
+    Node *_longest(const wstring &text);
+
+    py::tuple longest(const wstring &text, int mode);
+
+    py::iterator search(const wstring &text);
+
 };
 
 #endif //FASTLIB_ZTRIE_H

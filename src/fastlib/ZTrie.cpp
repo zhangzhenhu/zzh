@@ -3,12 +3,17 @@
 //
 
 #include "ZTrie.h"
+#include "SearchIterator.h"
 
 #include <utility>
 #include <iostream>
 #include <fstream>
 //#include <codecvt>
 #include <string>
+#include <stdexcept>
+#include <exception>
+
+#include "SearchIterator.h"
 
 
 std::wstring bool2str(bool v) {
@@ -91,7 +96,7 @@ std::wstring ZTrie::toString() {
            + L"}";
 }
 
-ZTrie *ZTrie::add(const std::wstring &word) {
+ZTrie *ZTrie::add(const std::wstring &word, bool end) {
     if (word.empty()) {
         return this;
     }
@@ -115,7 +120,7 @@ ZTrie *ZTrie::add(const std::wstring &word) {
             cur_ptr = t;
         }
     }
-    cur_ptr->_end = true;
+    cur_ptr->_end = end;
     return this;
 }
 
@@ -145,28 +150,71 @@ ZTrie *ZTrie::insert(const std::wstring &word, size_t count, bool end) {
     return this;
 }
 
-size_t ZTrie::size() {
-    size_t c = 1;
-    if (this->_children.empty()) {
-        return c;
-    }
-    for (auto ch:this->_children) {
-        c += ch.second->size();
-    }
-    return c;
-}
+/**
+ * 弹出一个前缀的子树并从原树中删除子树。
+ *
+ * @param prefix
+ * @return
+ */
+ZTrie *ZTrie::pop(const std::wstring &prefix) {
 
-ZTrie *ZTrie::subtree(const std::wstring &word) {
-    if (word.empty()) {
+    if (prefix.empty()) {
         return nullptr;
     }
     ZTrie *cur_ptr = this;
+    ZTrie *pre_ptr = this;
 
     if (cur_ptr == nullptr) {
         return nullptr;
     }
 
-    for (auto c :word) {
+    for (auto c :prefix) {
+
+        auto iter = cur_ptr->_children.find(std::wstring() + c);
+        if (iter != cur_ptr->_children.end()) {
+            // found
+            pre_ptr = cur_ptr;
+            cur_ptr = iter->second;
+            continue;
+
+        } else {
+            return nullptr;
+        }
+    }
+    // 从树中删除子树
+    pre_ptr->_children.erase(prefix.substr(prefix.length() - 1, 1));
+    return cur_ptr;
+
+}
+
+/**
+ * 直接删除一个前缀的子树
+ *
+ * @param prefix
+ * @return
+ */
+bool ZTrie::remove(const std::wstring &prefix) {
+    auto ptr = this->pop(prefix);
+    if (ptr == nullptr) {
+        return false;
+    }
+    delete ptr;
+    return true;
+}
+
+/**
+ * 返回某个前缀的子树
+ *
+ * @param prefix
+ * @return
+ */
+ZTrie *ZTrie::subtree(const std::wstring &prefix) {
+    if (prefix.empty()) {
+        return nullptr;
+    }
+    ZTrie *cur_ptr = this;
+
+    for (auto c :prefix) {
 
         auto iter = cur_ptr->_children.find(std::wstring() + c);
         if (iter != cur_ptr->_children.end()) {
@@ -181,7 +229,13 @@ ZTrie *ZTrie::subtree(const std::wstring &word) {
     return cur_ptr;
 }
 
-py::object ZTrie::search(const std::wstring &prefix) {
+/**
+ * 查询一个前缀，并返回尾部节点的计数器和状态标记。
+ *
+ * @param prefix
+ * @return
+ */
+py::object ZTrie::get(const std::wstring &prefix) {
 
     ZTrie *sub = this->subtree(prefix);
     if (sub != nullptr) {
@@ -190,6 +244,92 @@ py::object ZTrie::search(const std::wstring &prefix) {
 //    return py::make_tuple(false, 0);
     return py::none();
 }
+
+ZTrie::Node *ZTrie::_longest(const std::wstring &text) {
+
+    if (text.empty()) {
+        return nullptr;
+    }
+
+    ZTrie *cur_ptr = this;
+    ZTrie *pos_ptr = nullptr;
+    unsigned long pos = 0;
+
+    for (size_t i = 0; i < text.length(); i++) {
+        auto c = text[pos];
+        auto iter = cur_ptr->_children.find(std::wstring() + c);
+        if (iter != cur_ptr->_children.end()) {
+            // found
+            cur_ptr = iter->second;
+            if (cur_ptr->_end) {
+                pos = i;
+                pos_ptr = cur_ptr;
+            }
+
+            continue;
+
+        } else {
+            break;
+        }
+    }
+    if (pos_ptr == nullptr) {
+        return nullptr;
+    } else {
+
+        return new Node(text.substr(0, pos), pos_ptr);
+    }
+
+}
+
+py::tuple ZTrie::longest(const std::wstring &text, int mode = 1) {
+
+    if (text.empty()) {
+        return py::make_tuple(py::none(), py::none(), py::none());
+    }
+
+    ZTrie::Node *node = nullptr;
+    size_t pos = 0;
+    if (mode == 1) {
+        node = this->_longest(text);
+
+    } else if (mode == 2) {
+        size_t total = text.length();
+        py::tuple longest_;
+        for (size_t i = 0; i < total; i++) {
+            auto t = this->_longest(text.substr(i, total));
+            if (node == nullptr && t != nullptr) {
+                node = t;
+                pos = i;
+
+            } else if (t != nullptr && t->prefix.length() > node->prefix.length()) {
+                delete node;
+                node = t;
+                pos = i;
+                // 如果剩下的长度已经小于找到的前缀长度，就不用再继续找了。
+                if (total - i < node->prefix.length()) {
+                    break;
+                }
+
+            } else {
+                delete t;
+            }
+
+
+        }
+    } else {
+        throw std::invalid_argument("parameter:mode invalid.");
+    }
+    if (node == nullptr) {
+        return py::make_tuple(py::none(), py::none(), py::none());
+    } else {
+
+        auto result = py::make_tuple(node->prefix, node->tree, pos);
+        delete node;
+        return result;
+    }
+
+}
+
 
 py::dict ZTrie::asDict(bool recursion) {
     auto d = py::dict();
@@ -334,9 +474,29 @@ py::iterator ZTrie::iter() {
     return py::make_iterator(this->iter_begin(), this->iter_end());
 }
 
+size_t ZTrie::size() {
+    size_t c = 1;
+    if (this->_children.empty()) {
+        return c;
+    }
+    for (auto ch:this->_children) {
+        c += ch.second->size();
+    }
+    return c;
+}
 
 ZTrie::~ZTrie() {
 
     this->clear();
 }
 
+py::iterator ZTrie::search(const wstring &text) {
+//    auto x = SearchIterator(this,text,false);
+    // 这里 SearchIterator 是传值的
+    // 因此实际上 SearchIterator 对象会被复制一份，
+    // 入参对象就被释放掉
+    // SearchIterator 内部的 SearNode 如果保有 SearchIterator 的指针，
+    // 由于原来的 SearchIterator 对象被释放了，导致指针错误。
+//    cout << "search  " << &text << endl;
+    return py::make_iterator(SearchIterator(this, text, false), SearchIterator(this, text, true));
+}

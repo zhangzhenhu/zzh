@@ -6,10 +6,10 @@ def test_add():
     trie.add("中国人")
     trie.add("中国节")
     assert trie.size() == 5
-    assert trie.search("中") == (False, 2)
-    assert trie.search("中国") == (False, 2)
-    assert trie.search("中国人") == (True, 1)
-    assert trie.search("中国节") == (True, 1)
+    assert trie.get("中") == (False, 2)
+    assert trie.get("中国") == (False, 2)
+    assert trie.get("中国人") == (True, 1)
+    assert trie.get("中国节") == (True, 1)
 
 
 def test_insert():
@@ -17,11 +17,11 @@ def test_insert():
     trie.insert("中国人", counter=3, end=True)
     trie.insert("中国节", counter=100, end=False)
     assert trie.size() == 5
-    assert trie.search("中") == (False, 1)
-    assert trie.search("中国") == (False, 1)
-    assert trie.search("中国人") == (True, 3)
-    assert trie.search("中国节") == (False, 100)
-    assert trie.search("呵呵") is None
+    assert trie.get("中") == (False, 1)
+    assert trie.get("中国") == (False, 1)
+    assert trie.get("中国人") == (True, 3)
+    assert trie.get("中国节") == (False, 100)
+    assert trie.get("呵呵") is None
 
 
 def test_equal():
@@ -117,3 +117,60 @@ def test_save_load():
     t2 = ZTrie().load("_t_.csv", sep=',')
     os.remove("_t_.csv")
     assert t1.equal(t2)
+
+
+def test_remove():
+    t1 = ZTrie()
+
+    t1.add("中国人")
+    t1.add("中国节")
+    assert len(list(t1)) == 4
+    assert t1.size() == 5
+    assert not t1.remove("中国菜")
+    assert t1.remove("中国节")
+    assert t1.size() == 4
+    assert len(list(t1)) == 3
+    t1.add("中国结")
+    assert t1.remove("中国")
+    assert t1.size() == 2
+    assert len(list(t1)) == 1
+
+
+def test_pop():
+    t1 = ZTrie()
+
+    t1.add("中国人")
+    t1.add("中国节日")
+    t1.add("中国节选")
+    assert len(list(t1)) == 6
+    assert t1.size() == 7
+
+    tt = t1.pop("中国菜")
+    assert tt is None
+
+    tt = t1.pop("中国节")
+
+    assert t1.size() == 4
+    assert len(list(t1)) == 3
+    assert tt.size() == 3
+
+
+def test_longest():
+    t1 = ZTrie()
+    t1.add("中国人")
+    t1.add("中国节").add("我喜欢你")
+
+    l = t1.longest("我是中国人中国节", 1)
+    assert l[0] == "我"
+    assert l[2] == 0
+
+    l = t1.longest("他是中国人中国节", 1)
+    assert l == (None, None, None)
+
+    l = t1.longest("我是中国人中国节", 2)
+    assert l[0] == "中国人"
+    assert l[2] == 2
+
+    l = t1.longest("我是中国中国人中国节", 2)
+    assert l[0] == "中国人"
+    assert l[2] == 4

@@ -8,4 +8,4 @@ find_package(pybind11 CONFIG REQUIRED)
 
 
 add_subdirectory(pybind11)
-pybind11_add_module(fastlib bind.cpp ZTrie.cpp)
+pybind11_add_module(fastlib bind.cpp ZTrie.cpp SearchIterator.cpp SearchNode.cpp)

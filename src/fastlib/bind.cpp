@@ -6,6 +6,7 @@
 #include <pybind11/stl_bind.h>
 #include "lcs.hpp"
 #include "ZTrie.h"
+#include "SearchNode.h"
 
 namespace py = pybind11;
 
@@ -111,6 +112,9 @@ PYBIND11_MODULE(fastlib, m) {
 
     )pbdoc", py::arg("short").none(false), py::arg("long").none(false));
 
+
+
+
     // 绑定 ChildrenMap
     auto cm = py::bind_map<ChildrenMap >(m, "ChildrenMap",
                                          R"pbdoc(
@@ -172,6 +176,7 @@ PYBIND11_MODULE(fastlib, m) {
     )pbdoc");
 
 
+
     auto z = pybind11::class_<ZTrie>(m,
                                      "ZTrie",
                                      R"pbdoc(
@@ -197,16 +202,24 @@ PYBIND11_MODULE(fastlib, m) {
     z.def("__str__", &ZTrie::toString);
     z.def("__repr__", &ZTrie::toString);
 
-    z.def("add", &ZTrie::add, py::arg("word"),
+    z.def("add", &ZTrie::add,
+          py::arg("word"),
+          py::arg("end") = true,
           R"pbdoc(
     往当前树中增加一个（前缀）词。
     路径中所有节点的 counter 都会加1，最后的尾节点的 end 标记为True。
 
     :param word: 待插入前缀词。
     :type word: string(, unicode)
+    :param end: 尾部标记，True 表示是一个完整的词。
+    :type end: bool
     :return: self
 
     )pbdoc");
+    z.def("__setitem__", &ZTrie::add,
+          py::arg("word"),
+          py::arg("end") = true
+    );
     z.def("insert", &ZTrie::insert, R"pbdoc(
     直接插入一个尾部节点。
     如果某个前缀节点已经存在，此前缀节点的counter不会累加，end标记不会变动；
@@ -226,7 +239,7 @@ PYBIND11_MODULE(fastlib, m) {
           py::arg("counter") = 1,
           py::arg("end") = true);
 
-    z.def("search", &ZTrie::search,
+    z.def("get", &ZTrie::get,
           py::arg("prefix"),
           R"pbdoc(
     查询一个前缀
@@ -236,6 +249,37 @@ PYBIND11_MODULE(fastlib, m) {
     :rtype: tuple, None
 
     )pbdoc");
+    z.def("__getitem__", &ZTrie::get,
+          py::arg("prefix"),
+          R"pbdoc(
+    查询一个前缀
+
+    :param prefix: 前缀词
+    :return: 若存在返回 tuple(end,counter);若不存在，返回 None。
+    :rtype: tuple, None
+    )pbdoc");
+
+    z.def("longest", &ZTrie::longest,
+          py::arg("text"),
+          py::arg("mode") = 1,
+          R"pbdoc(
+    查找最长前缀
+
+    :param text: 文本
+    :return: 若存在返回 tuple(end,counter);若不存在，返回 None。
+    :rtype: tuple, None
+
+    )pbdoc");
+
+    z.def("search", &ZTrie::search,
+          py::arg("text"),
+          R"pbdoc(
+    搜索模式
+
+    :param text: 文本
+    :return: 迭代器
+    )pbdoc");
+
 
     z.def("subtree", &ZTrie::subtree,
           py::arg("prefix"),
@@ -244,8 +288,26 @@ PYBIND11_MODULE(fastlib, m) {
     获取子树
 
     :param prefix: 前缀
-
     :return: 子树
+    )pbdoc");
+
+    z.def("remove", &ZTrie::remove,
+          py::arg("prefix"),
+          R"pbdoc(
+    直接从树中删除某个前缀的子树。
+
+    :param prefix: 前缀
+    :return: 如果没有找到前缀返回False，如果找到并删除返回True。
+    )pbdoc");
+
+    z.def("pop", &ZTrie::pop,
+          py::arg("prefix"),
+          py::return_value_policy::take_ownership,
+          R"pbdoc(
+    返回某个前缀的子树并从原树中删除子树。
+
+    :param prefix: 前缀
+    :return: 命中的子树
     )pbdoc");
 
     z.def("copy", &ZTrie::copy,
@@ -260,6 +322,7 @@ PYBIND11_MODULE(fastlib, m) {
           R"pbdoc(
     返回树中节点的数量，包括根节点。
             )pbdoc");
+
     z.def("__iter__", &ZTrie::iter);
 //                 py::keep_alive<0, 1>() /* Essential: keep list alive while iterator exists */)
 
@@ -341,7 +404,6 @@ PYBIND11_MODULE(fastlib, m) {
                    py::return_value_policy::reference,
                    R"pbdoc(
     当前节点的子节点。
-
     )pbdoc");
 
 
