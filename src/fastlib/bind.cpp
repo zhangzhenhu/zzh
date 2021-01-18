@@ -176,7 +176,6 @@ PYBIND11_MODULE(fastlib, m) {
     )pbdoc");
 
 
-
     auto z = pybind11::class_<ZTrie>(m,
                                      "ZTrie",
                                      R"pbdoc(
@@ -263,18 +262,48 @@ PYBIND11_MODULE(fastlib, m) {
           py::arg("text"),
           py::arg("mode") = 1,
           R"pbdoc(
-    查找最长前缀
+    查找输入文本中匹配的最长前缀。
+    参数 ``mode`` 控制检索模式，当 mode==1 时，只从 text 的首位差值最长匹配。
+    当 mode ==2 时，会扫描 text 的每个位置，找到一个最长的匹配前缀。
 
-    :param text: 文本
-    :return: 若存在返回 tuple(end,counter);若不存在，返回 None。
-    :rtype: tuple, None
+    例如：
+
+    .. code-block:: python
+
+
+        t1 = ZTrie()
+        t1.add("中国人")
+        t1.add("中国节").add("我喜欢你")
+        # 当 mode = 1 时，只匹配输入 text 的首位。
+        assert t1.longest("", 1) is None
+        assert t1.longest("中国", 1) is None
+        assert t1.longest("我是中国人中国节", 1) is None
+
+        t1.longest("中国人中国节", 1) == {
+                          'prefix': '中国人',
+                          'start': 0,
+                          'len': 3
+                          'tree': ZTrie{'name': '人', 'end': True, 'counter': 1, 'children': 0},
+                           }
+
+        // 当 mode=2 时，会扫描输入text的每个位置。
+        long = t1.longest("我中国人中国节我喜欢你", 2)
+        assert long["prefix"] == '我喜欢你'
+        assert long["start"] == 7
+        assert long["len"] == 4
+
+
+    :param text: 检索的文本
+    :return: 如能找到最长匹配返回一个dict，dict中包含匹配的最长前缀、位置、长度、子树。若找不到任何匹配，返回 None
+    :rtype: dict, None
 
     )pbdoc");
 
     z.def("search", &ZTrie::search,
           py::arg("text"),
           R"pbdoc(
-    搜索模式
+    搜索模式。从输入文本中搜索所有能命中的前缀，返回一个迭代器。
+    每个匹配结果是一个 dict{'start': 在text中开始位置, 'len': 长度, 'prefix': '命中的前缀'}
 
     :param text: 文本
     :return: 迭代器

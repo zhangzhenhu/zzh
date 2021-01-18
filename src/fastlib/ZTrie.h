@@ -214,7 +214,7 @@ public:
 
     Node *_longest(const wstring &text);
 
-    py::tuple longest(const wstring &text, int mode);
+    py::object longest(const wstring &text, int mode);
 
     py::iterator search(const wstring &text);
 

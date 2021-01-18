@@ -160,17 +160,34 @@ def test_longest():
     t1.add("中国人")
     t1.add("中国节").add("我喜欢你")
 
-    l = t1.longest("我是中国人中国节", 1)
-    assert l[0] == "我"
-    assert l[2] == 0
+    assert t1.longest("", 1) is None
+    assert t1.longest("中国", 1) is None
+    assert t1.longest("我是中国人中国节", 1) is None
 
-    l = t1.longest("他是中国人中国节", 1)
-    assert l == (None, None, None)
+    long = t1.longest("中国人中国节", 1)
+    assert long["prefix"] == '中国人'
+    assert long["start"] == 0
+    assert long["len"] == 3
 
-    l = t1.longest("我是中国人中国节", 2)
-    assert l[0] == "中国人"
-    assert l[2] == 2
+    long = t1.longest("我是中国人中国节", 2)
+    assert long["prefix"] == '中国人'
+    assert long["start"] == 2
+    assert long["len"] == 3
 
-    l = t1.longest("我是中国中国人中国节", 2)
-    assert l[0] == "中国人"
-    assert l[2] == 4
+    long = t1.longest("我中国人中国节我喜欢你", 2)
+    assert long["prefix"] == '我喜欢你'
+    assert long["start"] == 7
+    assert long["len"] == 4
+
+
+def test_search():
+    t1 = ZTrie()
+    t1.add("中国人")
+    t1.add("中国节").add("我喜欢你").add("中国").add("我喜欢")
+
+    se = list(t1.search("他是中国人我喜欢你"))
+    assert len(se) == 4
+    assert se[0] == {'start': 2, 'len': 4, 'prefix': '中国'}
+    assert se[1] == {'start': 2, 'len': 5, 'prefix': '中国人'}
+    assert se[2] == {'start': 5, 'len': 8, 'prefix': '我喜欢'}
+    assert se[3] == {'start': 5, 'len': 9, 'prefix': '我喜欢你'}

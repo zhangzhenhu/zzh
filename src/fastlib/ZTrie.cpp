@@ -254,9 +254,8 @@ ZTrie::Node *ZTrie::_longest(const std::wstring &text) {
     ZTrie *cur_ptr = this;
     ZTrie *pos_ptr = nullptr;
     unsigned long pos = 0;
-
     for (size_t i = 0; i < text.length(); i++) {
-        auto c = text[pos];
+        auto c = text[i];
         auto iter = cur_ptr->_children.find(std::wstring() + c);
         if (iter != cur_ptr->_children.end()) {
             // found
@@ -266,7 +265,6 @@ ZTrie::Node *ZTrie::_longest(const std::wstring &text) {
                 pos_ptr = cur_ptr;
             }
 
-            continue;
 
         } else {
             break;
@@ -275,16 +273,17 @@ ZTrie::Node *ZTrie::_longest(const std::wstring &text) {
     if (pos_ptr == nullptr) {
         return nullptr;
     } else {
-
-        return new Node(text.substr(0, pos), pos_ptr);
+        // pos 是下标，不是长度
+        // 由于下标是从0开始，所以匹配上的前缀长度为pos+1
+        return new Node(text.substr(0, pos + 1), pos_ptr);
     }
 
 }
 
-py::tuple ZTrie::longest(const std::wstring &text, int mode = 1) {
+py::object ZTrie::longest(const std::wstring &text, int mode = 1) {
 
     if (text.empty()) {
-        return py::make_tuple(py::none(), py::none(), py::none());
+        return py::none();
     }
 
     ZTrie::Node *node = nullptr;
@@ -317,15 +316,20 @@ py::tuple ZTrie::longest(const std::wstring &text, int mode = 1) {
 
         }
     } else {
-        throw std::invalid_argument("parameter:mode invalid.");
+        throw std::invalid_argument("The parameter::mode is invalid.");
     }
     if (node == nullptr) {
-        return py::make_tuple(py::none(), py::none(), py::none());
+        return py::none();
     } else {
 
-        auto result = py::make_tuple(node->prefix, node->tree, pos);
+        auto result = py::dict();
+        result["prefix"] = node->prefix;
+        result["tree"] = node->tree;
+        result["start"] = pos;
+        result["len"] = node->prefix.length();
+//        =py::make_tuple(node->prefix, node->tree, pos);
         delete node;
-        return result;
+        return std::move(result);
     }
 
 }
